@@ -20,8 +20,7 @@ class SoundService {
   static int _trackIndex = 0;
 
   static const _playlist = [
-    'audio/02. Memories of Mother.mp3',
-    'audio/01. God of War.mp3',
+    'audio/music.mp3',
   ];
 
   static bool get soundEnabled => _soundEnabled;
