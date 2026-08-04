@@ -5,10 +5,12 @@ import '../data/history_data.dart';
 import '../data/god_tiers.dart';
 import '../l10n/language_provider.dart';
 import '../services/bookmark_service.dart';
+import '../services/premium_service.dart';
 import '../services/reading_service.dart';
 import '../services/sound_service.dart';
 import '../utils/app_fonts.dart';
 import '../widgets/god_card.dart';
+import '../widgets/premium_lock_sheet.dart';
 import 'history_story_detail_screen.dart';
 
 const _goldBright = Color(0xFFE0A82E);
@@ -29,11 +31,18 @@ class GodDetailScreen extends StatefulWidget {
 class _GodDetailScreenState extends State<GodDetailScreen> {
   late bool _fav;
   bool _compactCard = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _fav = widget.god.isBookmarked;
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   // Myth stories (the Stories feature) that feature this god.
@@ -118,6 +127,7 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
         fit: StackFit.expand,
         children: [
           SingleChildScrollView(
+            controller: _scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -129,7 +139,17 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
                     child: Stack(
                       fit: StackFit.expand,
                       children: [
-                        _buildImage(color, _compactCard),
+                        AnimatedBuilder(
+                          animation: _scrollController,
+                          builder: (context, child) {
+                            double offset = 0.0;
+                            if (_scrollController.hasClients) {
+                              offset = _scrollController.offset.clamp(0.0, 500.0);
+                            }
+                            final bool isGreek = g.mythology == 'Greek';
+                            return _buildImage(color, _compactCard, isGreek ? offset : 0.0);
+                          },
+                        ),
                         Align(
                           alignment: Alignment.bottomCenter,
                           child: Container(
@@ -180,7 +200,7 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
                             child: Text(
                               g.name,
                               style: AppFonts.cinzel(
-                                fontSize: 33,
+                                fontSize: 27,
                                 fontWeight: FontWeight.w800,
                                 color: Colors.white,
                               ),
@@ -193,13 +213,13 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.military_tech_rounded,
-                                      color: tier.color, size: 15),
+                                      color: tier.color, size: 13),
                                   const SizedBox(width: 4),
                                   Text(
                                     tier.label,
                                     style: TextStyle(
                                       color: tier.color,
-                                      fontSize: 14,
+                                      fontSize: 12.5,
                                       fontStyle: FontStyle.italic,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -215,7 +235,7 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
                           powerLabel,
                           style: const TextStyle(
                             color: _goldBright,
-                            fontSize: 15,
+                            fontSize: 13,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -224,37 +244,56 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
                       Text(
                         localize(lang, 'Kisah', 'Stories'),
                         style: AppFonts.cinzel(
-                          fontSize: 21,
+                          fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 14),
-                      SizedBox(
-                        height: 156,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          padding: EdgeInsets.zero,
-                          children: [
-                            _storyCard(
-                              title: localize(lang, 'Legenda ${g.name}', 'The Legend of ${g.name}'),
-                              excerpt: firstPara,
-                              read: ReadingService.isGodRead(g.id),
-                              color: color,
-                              lang: lang,
-                              onTap: _openGodStory,
+                      AnimatedBuilder(
+                        // Both notifiers: premium purchase flips premiumNotifier,
+                        // a daily free-god unlock bumps gatingRevision (premium
+                        // bool unchanged) — either must refresh the lock badge.
+                        animation: Listenable.merge([
+                          PremiumService.premiumNotifier,
+                          PremiumService.gatingRevision,
+                        ]),
+                        builder: (context, _) {
+                          final godLocked = PremiumService.isGodStoryLocked(g.id);
+                          final storiesLocked = PremiumService.isMythStoryLocked();
+                          return SizedBox(
+                            height: 156,
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              padding: EdgeInsets.zero,
+                              children: [
+                                _storyCard(
+                                  title: localize(lang, 'Legenda ${g.name}', 'The Legend of ${g.name}'),
+                                  excerpt: firstPara,
+                                  read: ReadingService.isGodRead(g.id),
+                                  color: color,
+                                  lang: lang,
+                                  isLocked: godLocked,
+                                  onTap: godLocked
+                                      ? () => showPremiumLockSheet(context)
+                                      : _openGodStory,
+                                ),
+                                for (final s in related)
+                                  _storyCard(
+                                    title: s.localizedTitle(lang),
+                                    excerpt: s.localizedSummary(lang),
+                                    read: ReadingService.isStoryRead(s.id),
+                                    color: color,
+                                    lang: lang,
+                                    isLocked: storiesLocked,
+                                    onTap: storiesLocked
+                                        ? () => showPremiumLockSheet(context)
+                                        : () => _openMythStory(s),
+                                  ),
+                              ],
                             ),
-                            for (final s in related)
-                              _storyCard(
-                                title: s.localizedTitle(lang),
-                                excerpt: s.localizedSummary(lang),
-                                read: ReadingService.isStoryRead(s.id),
-                                color: color,
-                                lang: lang,
-                                onTap: () => _openMythStory(s),
-                              ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 28),
                       Text(
@@ -262,7 +301,7 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
                         textAlign: TextAlign.justify,
                         style: const TextStyle(
                           color: Color(0xFFB8B8B8),
-                          fontSize: 15.5,
+                          fontSize: 14,
                           height: 1.75,
                         ),
                       ),
@@ -394,6 +433,7 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
     required Color color,
     required String lang,
     required VoidCallback onTap,
+    bool isLocked = false,
   }) {
     return Container(
       width: 290,
@@ -416,12 +456,15 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
               ),
-              if (read) ...[
+              if (isLocked) ...[
+                const SizedBox(width: 6),
+                const Icon(Icons.lock_rounded, color: _goldBright, size: 15),
+              ] else if (read) ...[
                 const SizedBox(width: 6),
                 const Icon(Icons.check_circle_rounded,
                     color: _readGreen, size: 16),
@@ -434,9 +477,10 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
               excerpt,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                color: Color(0xFF9E9E9E),
-                fontSize: 12.5,
+              style: TextStyle(
+                color: const Color(0xFF9E9E9E)
+                    .withValues(alpha: isLocked ? 0.5 : 1),
+                fontSize: 11.5,
                 height: 1.45,
               ),
             ),
@@ -446,18 +490,32 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
             onTap: onTap,
             child: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  localize(lang, 'Baca', 'Read'),
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Icon(Icons.arrow_forward_rounded, color: color, size: 13),
-              ],
+              children: isLocked
+                  ? [
+                      Text(
+                        localize(lang, 'Premium', 'Premium'),
+                        style: const TextStyle(
+                          color: _goldBright,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(Icons.lock_rounded,
+                          color: _goldBright, size: 13),
+                    ]
+                  : [
+                      Text(
+                        localize(lang, 'Baca', 'Read'),
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_rounded, color: color, size: 13),
+                    ],
             ),
           ),
         ],
@@ -465,7 +523,7 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
     );
   }
 
-  Widget _buildImage(Color color, bool compact) {
+  Widget _buildImage(Color color, bool compact, double scrollOffset) {
     Widget placeholder() => Container(
           color: color.withValues(alpha: 0.1),
           child: Center(
@@ -489,6 +547,32 @@ class _GodDetailScreenState extends State<GodDetailScreen> {
     } else {
       img = placeholder();
     }
+    
+    // Only apply parallax effect if scrollOffset > 0 (handled by Greek condition)
+    if (scrollOffset > 0.0) {
+      final double parallax = scrollOffset * 0.4;
+      final double opacity = (scrollOffset / 300).clamp(0.0, 0.6);
+      img = Transform.translate(
+        offset: Offset(0, parallax),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            img,
+            Container(color: Colors.black.withValues(alpha: opacity)),
+          ],
+        ),
+      );
+    }
+
+    // Apply Hero animation for ALL gods
+    img = Hero(
+      tag: 'hero_img_${widget.god.id}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: img,
+      ),
+    );
+    
     // Animate continuously between full-bleed (t=0) and framed/compact
     // (t=1) instead of snapping instantly, so the toggle reads as a real
     // zoom in/out rather than a hard cut.
@@ -580,7 +664,8 @@ class _GodStoryReaderScreenState extends State<_GodStoryReaderScreen> {
     _read = ReadingService.isGodRead(widget.god.id);
   }
 
-  Future<void> _toggleRead() async {
+  Future<void> _markRead() async {
+    if (_read) return; // one-way — once read, it can't be un-marked.
     SoundService.playClick();
     final nowRead = await ReadingService.toggleGodRead(widget.god);
     if (mounted) setState(() => _read = nowRead);
@@ -590,7 +675,6 @@ class _GodStoryReaderScreenState extends State<_GodStoryReaderScreen> {
   Widget build(BuildContext context) {
     final lang = LanguageProvider.of(context).value;
     final g = widget.god;
-    final color = GodCard.mythologyColor(g.mythology);
     final paragraphs = g
         .localizedStory(lang)
         .split('\n\n')
@@ -650,7 +734,7 @@ class _GodStoryReaderScreenState extends State<_GodStoryReaderScreen> {
                         textAlign: TextAlign.justify,
                         style: const TextStyle(
                           color: Color(0xFFCCCCCC),
-                          fontSize: 15,
+                          fontSize: 13.5,
                           height: 1.85,
                         ),
                       ),
@@ -660,46 +744,45 @@ class _GodStoryReaderScreenState extends State<_GodStoryReaderScreen> {
                     // Mark-as-read button — part of the scrollable story
                     // itself (not a fixed bar), so it only comes into view
                     // once the user scrolls all the way to the end,
-                    // confirming they've actually read through it.
-                    GestureDetector(
-                      onTap: _toggleRead,
-                      child: Container(
-                        width: double.infinity,
-                        height: 52,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: _read
-                              ? _readGreen.withValues(alpha: 0.16)
-                              : color.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(26),
-                          border: Border.all(
-                              color: _read
-                                  ? _readGreen.withValues(alpha: 0.7)
-                                  : color.withValues(alpha: 0.6)),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              _read
-                                  ? Icons.check_circle_rounded
-                                  : Icons.check_circle_outline_rounded,
-                              color: _read ? _readGreen : color,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              _read
-                                  ? (localize(lang, 'Sudah Dibaca', 'Read'))
-                                  : (localize(
-                                      lang, 'Tandai Dibaca', 'Mark as Read')),
-                              style: TextStyle(
-                                color: _read ? _readGreen : Colors.white,
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.w700,
+                    // confirming they've actually read through it. One-way:
+                    // once marked read it can no longer be un-marked, so
+                    // there's no tap handler left once _read is true.
+                    Center(
+                      child: GestureDetector(
+                        onTap: _read ? null : _markRead,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withValues(alpha: 0.16),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                                color: Colors.grey.withValues(alpha: 0.5)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                _read
+                                    ? Icons.check_circle_rounded
+                                    : Icons.check_circle_outline_rounded,
+                                color: Colors.grey.shade400,
+                                size: 14,
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 3),
+                              Text(
+                                _read
+                                    ? (localize(lang, 'Sudah Dibaca', 'Read'))
+                                    : (localize(
+                                        lang, 'Tandai Dibaca', 'Mark as Read')),
+                                style: TextStyle(
+                                  color: Colors.grey.shade400,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

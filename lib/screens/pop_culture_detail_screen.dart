@@ -346,11 +346,17 @@ class _PopCultureDetailScreenState extends State<PopCultureDetailScreen> {
                 color: color.withValues(alpha: 0.3), size: 64),
           ),
         );
-    Widget img = Image.asset(
-      widget.character.imageUrl,
-      fit: BoxFit.cover,
-      alignment: Alignment.topCenter,
-      errorBuilder: (_, __, ___) => placeholder(),
+    Widget img = Hero(
+      tag: 'hero_pop_${widget.character.id}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: Image.asset(
+          widget.character.imageUrl,
+          fit: BoxFit.cover,
+          alignment: Alignment.topCenter,
+          errorBuilder: (_, __, ___) => placeholder(),
+        ),
+      ),
     );
     if (compact) {
       return Center(
@@ -600,7 +606,7 @@ class _PopCultureDetailScreenState extends State<PopCultureDetailScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              localize(lang, 'Belum ada kartu dewa untuk "${widget.character.inspiredFrom}" di katalog utama — tokoh ini terlalu minor dalam mitologi asli untuk punya kisah tersendiri.', 'No god card yet for "${widget.character.inspiredFrom}" in the main catalog — this figure is too minor in the original mythology to have a story of its own.'),
+              localize(lang, 'Belum ada kartu dewa untuk "${widget.character.inspiredFrom}" di katalog utama, karena tokoh ini terlalu minor dalam mitologi asli untuk punya kisah tersendiri.', 'No god card yet for "${widget.character.inspiredFrom}" in the main catalog, since this figure is too minor in the original mythology to have a story of its own.'),
               style: const TextStyle(
                 color: Color(0xFF999999),
                 fontSize: 12,

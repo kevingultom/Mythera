@@ -115,6 +115,26 @@ class GodCard extends StatefulWidget {
   State<GodCard> createState() => _GodCardState();
 }
 
+class _InfoIconBadge extends StatelessWidget {
+  const _InfoIconBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.5),
+        shape: BoxShape.circle,
+      ),
+      child: const Icon(
+        Icons.info_outline,
+        color: Colors.white70,
+        size: 20,
+      ),
+    );
+  }
+}
+
 class _GodCardState extends State<GodCard> {
   static const _bottomAlignNames = {'Yama'};
   // Portraits whose faces sit well above image-center; raised further up
@@ -133,16 +153,27 @@ class _GodCardState extends State<GodCard> {
         ? Alignment.bottomCenter
         : (_raisedAlignments[name] ?? Alignment.topCenter);
 
+    Widget imgWidget;
     if (url.startsWith('assets/')) {
-      return Image.asset(url, fit: BoxFit.cover, alignment: align,
+      imgWidget = Image.asset(url, fit: BoxFit.cover, alignment: align,
         width: double.infinity, height: double.infinity,
         errorBuilder: (_, __, ___) => Container(color: const Color(0xFF222222)));
     } else if (url.isNotEmpty) {
-      return Image.network(url, fit: BoxFit.cover, alignment: align,
+      imgWidget = Image.network(url, fit: BoxFit.cover, alignment: align,
         width: double.infinity, height: double.infinity,
         errorBuilder: (_, __, ___) => Container(color: const Color(0xFF222222)));
+    } else {
+      imgWidget = Container(color: const Color(0xFF222222));
     }
-    return Container(color: const Color(0xFF222222));
+
+    // Apply Hero animation for ALL gods
+    return Hero(
+      tag: 'hero_img_${widget.god.id}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: imgWidget,
+      ),
+    );
   }
 
   Future<void> _navigateToDetail() async {
@@ -205,20 +236,16 @@ class _GodCardState extends State<GodCard> {
                       ),
                       if (widget.showInfoIcon)
                         Positioned(
-                          top: 12,
-                          right: 12,
+                          top: 6,
+                          right: 6,
                           child: GestureDetector(
                             onTap: _navigateToDetail,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.5),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.info_outline,
-                                color: Colors.white70,
-                                size: 20,
+                            behavior: HitTestBehavior.opaque,
+                            child: const SizedBox(
+                              width: 44,
+                              height: 44,
+                              child: Center(
+                                child: _InfoIconBadge(),
                               ),
                             ),
                           ),

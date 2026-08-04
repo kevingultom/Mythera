@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/god_model.dart';
 import '../models/pop_culture_model.dart';
@@ -7,6 +9,7 @@ import '../widgets/random_god_dialog.dart';
 import '../l10n/language_provider.dart';
 import '../l10n/app_strings.dart';
 import '../services/bookmark_service.dart';
+import '../services/daily_free_service.dart';
 import '../services/onboarding_service.dart';
 import '../services/sound_service.dart';
 import '../utils/app_fonts.dart';
@@ -37,6 +40,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   String _selectedMythology = 'All';
   String? _expandedGodId;
   late final AnimationController _staggerCtrl;
+  Timer? _freeCardClock;
 
   @override
   void initState() {
@@ -49,6 +53,26 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 800),
     )..forward();
     _loadBookmarks();
+    _scheduleFreeCardRefresh();
+  }
+
+  /// The Free God Card's availability flips at the 9 AM day boundary
+  /// (DailyFreeService._todayKey) purely by wall-clock time, with nothing
+  /// else to trigger a rebuild. Rather than polling forever, sleep exactly
+  /// until that next boundary, repaint the dice badge once, then schedule
+  /// the following one — a single pending timer instead of a tick every
+  /// minute for the life of the screen.
+  void _scheduleFreeCardRefresh() {
+    final now = DateTime.now();
+    var next = DateTime(now.year, now.month, now.day, 9);
+    if (!next.isAfter(now)) next = next.add(const Duration(days: 1));
+
+    _freeCardClock?.cancel();
+    _freeCardClock = Timer(next.difference(now), () {
+      if (!mounted) return;
+      setState(() {});
+      _scheduleFreeCardRefresh();
+    });
   }
 
   /// Returns a staggered animation for card at [index].
@@ -83,6 +107,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _staggerCtrl.dispose();
     _searchController.dispose();
     _scrollController.dispose();
+    _freeCardClock?.cancel();
     super.dispose();
   }
 
@@ -139,6 +164,162 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       context,
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => page,
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+    );
+  }
+
+  // Bottom sheet on the dice button: "for fun" random god (Option 1) or the
+  // daily free-god unlock (Option 2). Option 2's state is computed up front —
+  // disabled if already claimed today or if no locked gods remain.
+  void _openDiceMenu() {
+    SoundService.playClick();
+    final lang = LanguageProvider.of(context).value;
+    final canClaim = DailyFreeService.canClaimFreeToday();
+    final hasLocked = DailyFreeService.hasLockedGodsRemaining(_allGods);
+    final freeEnabled = canClaim && hasLocked;
+
+    final freeSubtitle = !hasLocked
+        ? localize(lang, 'Semua dewa sudah kamu buka', 'You have unlocked every god')
+        : !canClaim
+            ? localize(lang, 'Kembali lagi besok jam 9 pagi', 'Come back tomorrow at 9 AM')
+            : localize(lang, 'Buka 1 legenda dewa gratis hari ini', 'Unlock 1 god legend free today');
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF141414),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _diceMenuOption(
+                icon: Icons.casino_rounded,
+                iconColor: Colors.white,
+                title: localize(lang, 'Dewa Acak (iseng)', 'Random God (for fun)'),
+                subtitle: localize(lang, 'Jelajah dewa mana saja secara acak', 'Spin any god at random'),
+                enabled: true,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _startRandomGod();
+                },
+              ),
+              const SizedBox(height: 10),
+              _diceMenuOption(
+                icon: Icons.card_giftcard_rounded,
+                iconColor: const Color(0xFFE0A82E),
+                title: localize(lang, 'Kartu Dewa Gratis', 'Free God Card'),
+                subtitle: freeSubtitle,
+                enabled: freeEnabled,
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  _startFreeGodRoll();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _diceMenuOption({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    required String subtitle,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.45,
+      child: GestureDetector(
+        onTap: enabled ? onTap : null,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFF2A2A2A)),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF111111),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 22),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 11.5),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Rolls a random god from the LOCKED pool only and unlocks its legend for
+  // free (permanent), then opens its detail so the user can read right away.
+  Future<void> _startFreeGodRoll() async {
+    if (!DailyFreeService.canClaimFreeToday()) return;
+    final locked = DailyFreeService.lockedPool(_allGods);
+    if (locked.isEmpty) return;
+    SoundService.playClick();
+    final lang = LanguageProvider.of(context).value;
+
+    final pool = <RandomEntry>[
+      for (final g in locked)
+        RandomEntry(
+          imageUrl: g.imageUrl,
+          name: g.name,
+          subtitle: g.localizedTitle(lang),
+          verse: g.mythology,
+          payload: g,
+        ),
+    ];
+
+    final result = await RandomGodDialog.show(context, pool);
+    if (result == null || !mounted) return;
+    final payload = result.payload;
+    if (payload is! God) return;
+
+    await DailyFreeService.claim(payload);
+    if (!mounted) return;
+
+    Navigator.push(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => GodDetailScreen(god: payload),
         transitionsBuilder: (_, anim, __, child) =>
             FadeTransition(opacity: anim, child: child),
         transitionDuration: const Duration(milliseconds: 300),
@@ -335,7 +516,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             _buildGenreCards(lang),
             _buildFeatureCards(lang),
             _buildSearchBar(lang),
-            _buildResultCount(lang),
+            const SizedBox(height: 14),
             if (_filteredGods.isEmpty)
               SizedBox(
                 height: 200,
@@ -398,9 +579,9 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'MYTHERA',
-                  style: TextStyle(
+                  style: AppFonts.cinzel(
                     color: Colors.white,
                     fontSize: 26,
                     fontWeight: FontWeight.w900,
@@ -461,7 +642,7 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           // Search field
           Expanded(
             child: Container(
-              height: 40,
+              constraints: const BoxConstraints(minHeight: 40),
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1A1A),
                 borderRadius: BorderRadius.circular(10),
@@ -489,30 +670,104 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       const BoxConstraints(minWidth: 40, minHeight: 0),
                   border: InputBorder.none,
                   isDense: true,
-                  isCollapsed: true,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 ),
               ),
             ),
           ),
           const SizedBox(width: 8),
-          // Random God button — gilded dice, the app's "surprise me" action.
-          GestureDetector(
-            onTap: _startRandomGod,
-            child: Container(
-              height: 40,
-              width: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.2),
+          // Dice button — opens a menu: "for fun" random god, or the daily
+          // free-god unlock. Turns gold with a "1" badge whenever today's
+          // Free God Card is still unclaimed (day boundary is 9 AM — see
+          // DailyFreeService._todayKey), so its availability is visible
+          // without opening the menu. Long-press (debug only) resets
+          // today's free claim so the daily limit can be tested without
+          // waiting for 9 AM.
+          Builder(builder: (context) {
+            final freeCardAvailable = DailyFreeService.canClaimFreeToday() &&
+                DailyFreeService.hasLockedGodsRemaining(_allGods);
+            const gold = Color(0xFFE0A82E);
+            return GestureDetector(
+              onTap: _openDiceMenu,
+              onLongPress: kDebugMode
+                  ? () async {
+                      await DailyFreeService.debugResetDailyClaim();
+                      if (mounted) {
+                        setState(() {});
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('[Debug] Daily free claim reset'),
+                            duration: Duration(seconds: 1),
+                          ),
+                        );
+                      }
+                    }
+                  : null,
+              child: SizedBox(
+                height: 40,
+                width: 40,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 400),
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        color: freeCardAvailable
+                            ? gold.withValues(alpha: 0.14)
+                            : const Color(0xFF1A1A1A),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: freeCardAvailable
+                              ? gold.withValues(alpha: 0.7)
+                              : Colors.white.withValues(alpha: 0.2),
+                        ),
+                        boxShadow: freeCardAvailable
+                            ? [
+                                BoxShadow(
+                                  color: gold.withValues(alpha: 0.35),
+                                  blurRadius: 10,
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Icon(
+                        Icons.casino_rounded,
+                        color: freeCardAvailable ? gold : Colors.white,
+                        size: 23,
+                      ),
+                    ),
+                    if (freeCardAvailable)
+                      Positioned(
+                        top: -5,
+                        right: -5,
+                        child: Container(
+                          height: 17,
+                          width: 17,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: gold,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: const Color(0xFF0B0B0B), width: 1.5),
+                          ),
+                          child: const Text(
+                            '1',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w800,
+                              height: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
-              child: const Icon(Icons.casino_rounded,
-                  color: Colors.white, size: 23),
-            ),
-          ),
+            );
+          }),
         ],
       ),
     );
@@ -774,16 +1029,6 @@ class HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildResultCount(String lang) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-      child: Text(
-        '${_filteredGods.length} ${AppStrings.get("resultCount", lang)}',
-        style: const TextStyle(color: Color(0xFFD1D5DB), fontSize: 11),
       ),
     );
   }

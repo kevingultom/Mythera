@@ -60,7 +60,7 @@ final List<MythStory> japaneseHistory2 = [
       'The Yasogami, Okuninushi\'s eighty arrogant and cruel brothers',
       'Yakami-hime, the princess of Inaba courted by all the brothers',
       'The wani, sea crocodiles tricked by the hare into forming a bridge',
-      'Okuninushi\'s mother — the goddess who twice begged for her son\'s revival',
+      'Okuninushi\'s mother, the goddess who twice begged for her son\'s revival',
       'Susanoo, storm god and ruler of Yomi who tested Okuninushi',
       'Suseri-hime, Susanoo\'s daughter who helped Okuninushi escape',
     ],

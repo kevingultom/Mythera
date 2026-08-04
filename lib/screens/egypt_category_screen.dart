@@ -79,6 +79,15 @@ class EgyptCategoryScreen extends StatelessWidget {
                   _buildCategoryCard(
                     context,
                     color: color,
+                    label: localize(lang, 'Kerajaan Ilahi', 'Divine Kingship'),
+                    category: 'Kingship',
+                    subtitle: localize(lang, 'Firaun, penguasa yang mewarisi otoritas para dewa', 'The Pharaoh, ruler who inherits the gods\' authority'),
+                    imagePath: 'assets/images/Egypt/Category/kingship.webp',
+                  ),
+                  const SizedBox(height: 10),
+                  _buildCategoryCard(
+                    context,
+                    color: color,
                     label: localize(lang, 'Matahari & Langit', 'Sun & Sky'),
                     category: 'Sun',
                     subtitle: localize(lang, 'Dewa-dewi matahari & langit', 'Gods of the sun & the heavens'),

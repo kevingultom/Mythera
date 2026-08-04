@@ -19,8 +19,12 @@ class MythicPopCultureScreen extends StatefulWidget {
 }
 
 class _MythicPopCultureScreenState extends State<MythicPopCultureScreen> {
-  static const _verses = ['All', 'Greek', 'Egyptian', 'Nordic', 'Chinese', 'Japanese', 'Hindu'];
-  static const _mediaTypes = ['All', 'Game', 'Film', 'Novel'];
+  static const _verses = [
+    'All', 'Greek', 'Egyptian', 'Nordic', 'Chinese', 'Japanese', 'Hindu',
+    'Polynesian', 'Slavic', 'African', 'Mesopotamian', 'Mesoamerican',
+    'Scandinavian',
+  ];
+  static const _mediaTypes = ['All', 'Game', 'Film', 'Novel', 'Anime'];
 
   String _verseFilter = 'All';
   String _mediaFilter = 'All';
@@ -464,11 +468,18 @@ class _ImmersivePcCard extends StatelessWidget {
                 color: color.withValues(alpha: 0.25), size: 64),
           ),
         );
-    return Image.asset(
+    final img = Image.asset(
       character.imageUrl,
       fit: BoxFit.cover,
       alignment: Alignment.topCenter,
       errorBuilder: (_, __, ___) => placeholder(),
+    );
+    return Hero(
+      tag: 'hero_pop_${character.id}',
+      child: Material(
+        type: MaterialType.transparency,
+        child: img,
+      ),
     );
   }
 }

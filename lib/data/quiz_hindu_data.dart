@@ -137,8 +137,8 @@ final List<QuizQuestion> hinduQuizData = [
   QuizQuestion(
     question: 'Siapa yang memberikan chakra (cakram) kepada Vishnu?',
     questionEn: 'Who gave the chakra (discus) to Vishnu?',
-    options: ['Brahma', 'Shiva', 'Vayu', 'Tidak ada yang memberi — itu bagian dari dirinya'],
-    optionsEn: ['Brahma', 'Shiva', 'Vayu', 'No one gave it — it\'s part of him'],
+    options: ['Brahma', 'Shiva', 'Vayu', 'Tidak ada yang memberi, itu bagian dari dirinya'],
+    optionsEn: ['Brahma', 'Shiva', 'Vayu', 'No one gave it, it\'s part of him'],
     correctIndex: 3,
   ),
   QuizQuestion(
@@ -235,8 +235,8 @@ final List<QuizQuestion> hinduQuizData = [
   QuizQuestion(
     question: 'Siapa yang mengorbankan matanya untuk melihat masa depan?',
     questionEn: 'Who sacrificed his eyes to see the future?',
-    options: ['Shiva', 'Brahma', 'Vishnu', 'Tidak ada — ini mitos Nordic (Odin)'],
-    optionsEn: ['Shiva', 'Brahma', 'Vishnu', 'None — this is Norse myth (Odin)'],
+    options: ['Shiva', 'Brahma', 'Vishnu', 'Tidak ada, ini mitos Nordic (Odin)'],
+    optionsEn: ['Shiva', 'Brahma', 'Vishnu', 'None, this is Norse myth (Odin)'],
     correctIndex: 3,
   ),
   QuizQuestion(
@@ -263,8 +263,8 @@ final List<QuizQuestion> hinduQuizData = [
   QuizQuestion(
     question: 'Siapa putra Shiva dan Parvati selain Ganesha?',
     questionEn: 'Who is the son of Shiva and Parvati besides Ganesha?',
-    options: ['Kartikeya', 'Indra', 'Kama', 'Subramanya — nama lain Kartikeya'],
-    optionsEn: ['Kartikeya', 'Indra', 'Kama', 'Subramanya — another name for Kartikeya'],
+    options: ['Kartikeya', 'Indra', 'Kama', 'Subramanya, nama lain Kartikeya'],
+    optionsEn: ['Kartikeya', 'Indra', 'Kama', 'Subramanya, another name for Kartikeya'],
     correctIndex: 0,
   ),
   QuizQuestion(
@@ -291,8 +291,8 @@ final List<QuizQuestion> hinduQuizData = [
   QuizQuestion(
     question: 'Apa nama kura-kura raksasa yang menopang gunung Mandara saat pengadukan samudra?',
     questionEn: 'What is the name of the giant turtle that supported Mount Mandara during the ocean churning?',
-    options: ['Kurma avatar Vishnu', 'Akupara', 'Hiranyaksha', 'Kurma — itu nama avatar-nya'],
-    optionsEn: ['Kurma avatar of Vishnu', 'Akupara', 'Hiranyaksha', 'Kurma — that\'s the avatar\'s name'],
+    options: ['Kurma avatar Vishnu', 'Akupara', 'Hiranyaksha', 'Kurma, itu nama avatar-nya'],
+    optionsEn: ['Kurma avatar of Vishnu', 'Akupara', 'Hiranyaksha', 'Kurma, that\'s the avatar\'s name'],
     correctIndex: 3,
   ),
   QuizQuestion(
@@ -422,8 +422,8 @@ final List<QuizQuestion> hinduQuizData = [
     correctIndex: 1,
   ),
   QuizQuestion(
-    question: 'Apa sebutan untuk konsep tiga alam dalam kosmologi Hindu — Svarga (surga), Bhumi (bumi), dan Patala (dunia bawah)?',
-    questionEn: 'What is the term for the concept of three worlds in Hindu cosmology — Svarga (heaven), Bhumi (earth), and Patala (underworld)?',
+    question: 'Apa sebutan untuk konsep tiga alam dalam kosmologi Hindu, yaitu Svarga (surga), Bhumi (bumi), dan Patala (dunia bawah)?',
+    questionEn: 'What is the term for the concept of three worlds in Hindu cosmology, namely Svarga (heaven), Bhumi (earth), and Patala (underworld)?',
     options: ['Trimurti', 'Tridevi', 'Trishula', 'Triloka'],
     optionsEn: ['Trimurti', 'Tridevi', 'Trishula', 'Triloka'],
     correctIndex: 3,
@@ -437,7 +437,7 @@ final List<QuizQuestion> hinduQuizData = [
   ),
   QuizQuestion(
     question: 'Asura, ras makhluk berkekuatan besar yang menjadi musuh para Deva, sebenarnya adalah saudara mereka sendiri, sama-sama anak dari resi mana?',
-    questionEn: 'The Asuras, a race of powerful beings and enemies of the Devas, are actually their own brothers — both are children of which sage?',
+    questionEn: 'The Asuras, a race of powerful beings and enemies of the Devas, are actually their own brothers, and both are children of which sage?',
     options: ['Brahma', 'Daksha', 'Kashyapa', 'Vishwakarma'],
     optionsEn: ['Brahma', 'Daksha', 'Kashyapa', 'Vishwakarma'],
     correctIndex: 2,

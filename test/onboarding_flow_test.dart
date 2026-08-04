@@ -61,12 +61,18 @@ void main() {
     await tester.tap(find.text('Enable daily reminders'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Continue'));
-    await tester.pumpAndSettle();
+    // pumpAndSettle can't be used from here on: landing on page 7 (Ready)
+    // starts an intentionally infinite halo pulse behind the patron
+    // portrait (AnimationController.repeat()), so "settle" never arrives.
+    // Pump through the page-swipe transition with fixed steps instead.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
 
     // Page 7 — Ready → enter the app.
     expect(find.text('Enter Mythera'), findsOneWidget);
     await tester.tap(find.text('Enter Mythera'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 1500));
 
     expect(tester.takeException(), isNull, reason: 'Finishing onboarding threw');
     expect(OnboardingService.isComplete, isTrue,

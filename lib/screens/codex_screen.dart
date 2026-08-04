@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import '../l10n/language_provider.dart';
+import '../services/premium_service.dart';
 import '../services/sound_service.dart';
+import 'divine_team_screen.dart';
 import 'favorites_screen.dart';
 import 'my_myths_screen.dart';
 import 'mythic_pop_culture_screen.dart';
+import 'premium_screen.dart';
 import 'quiz_genre_screen.dart';
 import 'tier_screen.dart';
 
@@ -53,7 +56,7 @@ class CodexScreen extends StatelessWidget {
                 ),
               ),
               Expanded(
-                flex: 19,
+                flex: 16,
                 child: _BigCard(
                   icon: Icons.favorite_rounded,
                   title: 'Favorites',
@@ -64,7 +67,7 @@ class CodexScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Expanded(
-                flex: 19,
+                flex: 16,
                 child: _BigCard(
                   icon: Icons.auto_stories_rounded,
                   title: 'My Myths',
@@ -76,7 +79,19 @@ class CodexScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Expanded(
-                flex: 19,
+                flex: 16,
+                child: _BigCard(
+                  icon: Icons.quiz_rounded,
+                  title: 'Quiz',
+                  subtitle:
+                      localize(lang, 'Uji pengetahuanmu', 'Test your knowledge'),
+                  imageAsset: 'assets/images/quiz.webp',
+                  onTap: () => _open(context, const QuizGenreScreen()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                flex: 16,
                 child: _BigCard(
                   icon: Icons.movie_filter_rounded,
                   title: 'Mythic Pop Culture',
@@ -87,21 +102,10 @@ class CodexScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               Expanded(
-                flex: 30,
+                flex: 21,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Expanded(
-                      child: _SmallCard(
-                        icon: Icons.quiz_rounded,
-                        title: 'Quiz',
-                        subtitle:
-                            localize(lang, 'Uji pengetahuanmu', 'Test your knowledge'),
-                        onTap: () => _open(context, const QuizGenreScreen()),
-                        imageAsset: 'assets/images/quiz.webp',
-                      ),
-                    ),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: _SmallCard(
                         icon: Icons.military_tech_rounded,
@@ -112,13 +116,27 @@ class CodexScreen extends StatelessWidget {
                         imageAsset: 'assets/images/tier.webp',
                       ),
                     ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _SmallCard(
+                        icon: Icons.groups_rounded,
+                        title: 'Divine Team',
+                        subtitle: localize(
+                            lang, 'Rakit tim dewamu', 'Assemble your pantheon'),
+                        onTap: () => _open(context, const DivineTeamScreen()),
+                        imageAsset: 'assets/images/tier.webp',
+                      ),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
               Expanded(
-                flex: 17,
-                child: _SupportBanner(id: id),
+                flex: 14,
+                child: GestureDetector(
+                  onTap: () => _open(context, const PremiumScreen()),
+                  child: _SupportBanner(id: id),
+                ),
               ),
             ],
           ),
@@ -276,7 +294,7 @@ class _SmallCard extends StatelessWidget {
                 ),
               ),
             Padding(
-              padding: const EdgeInsets.all(13),
+              padding: const EdgeInsets.all(11),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -333,56 +351,85 @@ class _SupportBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final lang = id ? 'id' : 'en';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(18),
-        gradient: LinearGradient(
-          colors: [_gold.withValues(alpha: 0.35), _gold.withValues(alpha: 0.08)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: Color(0xFF1A1A1A),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.volunteer_activism_rounded,
-                color: _gold, size: 21),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  localize(lang, 'Dukung pengembangan', 'Support the development'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
+    return ValueListenableBuilder<bool>(
+      valueListenable: PremiumService.premiumNotifier,
+      builder: (context, isPremium, _) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            image: isPremium
+                ? const DecorationImage(
+                    image: AssetImage('assets/images/premium.jpg'),
+                    fit: BoxFit.cover,
+                  )
+                : null,
+            gradient: isPremium
+                ? LinearGradient(
+                    colors: [
+                      Colors.black.withValues(alpha: 0.70),
+                      Colors.black.withValues(alpha: 0.40),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  )
+                : LinearGradient(
+                    colors: [_gold.withValues(alpha: 0.35), _gold.withValues(alpha: 0.08)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  localize(lang, 'Bantu kami kembangkan fitur baru', 'Help us build more myth features'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 11.5),
-                ),
-              ],
-            ),
           ),
-        ],
-      ),
+          child: Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF1A1A1A),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isPremium
+                      ? Icons.check_circle_rounded
+                      : Icons.volunteer_activism_rounded,
+                  color: _gold,
+                  size: 21,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      isPremium
+                          ? localize(lang, 'Premium aktif', 'Premium active')
+                          : localize(lang, 'Buka semua kisah', 'Unlock all stories'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      isPremium
+                          ? localize(lang, 'Terima kasih telah mendukung Mythera', 'Thanks for supporting Mythera')
+                          : localize(lang, 'Sekali bayar, semua legenda & kisah terbuka', 'Pay once, unlock every legend & story'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 11.5),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

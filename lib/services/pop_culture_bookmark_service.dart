@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_auth_service.dart';
 import 'firestore_service.dart';
@@ -36,6 +37,8 @@ class PopCultureBookmarkService {
   static void _syncToCloud() {
     final uid = FirebaseAuthService.instance.uid;
     if (uid == null || FirebaseAuthService.instance.isAnonymous) return;
-    FirestoreService.instance.savePcFavorites(uid, _ids).catchError((e) {});
+    FirestoreService.instance
+        .savePcFavorites(uid, _ids)
+        .catchError((e) => debugPrint('PopCultureBookmarkService cloud sync failed: $e'));
   }
 }

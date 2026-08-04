@@ -11,6 +11,8 @@ import 'services/onboarding_service.dart';
 import 'services/firebase_auth_service.dart';
 import 'services/firestore_service.dart';
 import 'services/notification_service.dart';
+import 'services/premium_service.dart';
+import 'services/daily_free_service.dart';
 import 'services/settings_service.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/splash_welcome_screen.dart';
@@ -18,8 +20,19 @@ import 'screens/splash_welcome_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Firebase must be initialized first.
-  await Firebase.initializeApp();
+  // Firebase must be initialized first. On web there's no bundled config
+  // (google-services.json only covers Android), so init throws — and every
+  // later Firebase call (auth, Firestore) would then throw too and freeze
+  // the app before it renders. Track whether init actually succeeded and
+  // skip all Firebase/notification work if it didn't, so the UI still shows
+  // (login & cloud sync just won't work — fine for a web preview).
+  bool firebaseReady = false;
+  try {
+    await Firebase.initializeApp();
+    firebaseReady = true;
+  } catch (e) {
+    debugPrint('Firebase init failed (expected on web without config): $e');
+  }
 
   // Local services.
   final langNotifier = LanguageNotifier();
@@ -28,21 +41,31 @@ void main() async {
   await ReadingService.init();
   await PopCultureBookmarkService.init();
   await OnboardingService.init();
+  await PremiumService.init();
+  await DailyFreeService.init();
 
-  // Firebase services — non-blocking, fail silently.
-  FirebaseAuthService.instance.ensureAnonymous().then((_) {
-    // Sync cloud → local on startup in the background (fire-and-forget).
-    _syncFromCloud().catchError((e) {
-      debugPrint('Firestore sync failed: $e');
+  if (firebaseReady) {
+    // Firebase services — non-blocking, fail silently.
+    FirebaseAuthService.instance.ensureAnonymous().then((_) {
+      // Sync cloud → local on startup in the background (fire-and-forget).
+      _syncFromCloud().catchError((e) {
+        debugPrint('Firestore sync failed: $e');
+      });
+      // Live premium-status listener for the app's lifetime — keeps
+      // PremiumService's cache/notifier in sync so gating updates instantly
+      // without needing a restart once payment is confirmed.
+      PremiumService.watch().listen((_) {}, onError: (e) {
+        debugPrint('Premium status listener failed: $e');
+      });
+    }).catchError((e) {
+      debugPrint('Auth init failed: $e');
     });
-  }).catchError((e) {
-    debugPrint('Auth init failed: $e');
-  });
 
-  // Notifications aren't needed for the first frame, and requesting the
-  // permission can pop a system dialog that blocks on the user's response —
-  // run it in the background instead of delaying the splash screen.
-  unawaited(_initNotifications());
+    // Notifications aren't needed for the first frame, and requesting the
+    // permission can pop a system dialog that blocks on the user's response —
+    // run it in the background instead of delaying the splash screen.
+    unawaited(_initNotifications());
+  }
 
   runApp(LanguageProvider(notifier: langNotifier, child: const MytheraApp()));
 }
@@ -111,6 +134,13 @@ Future<void> _syncFromCloud() async {
     if (cloudSettings.isNotEmpty) {
       await _mergeCloudSettings(cloudSettings);
     }
+
+    // ── Daily free-unlocked gods — union set, keep later claim date ──
+    final cloudFree = (cloud['freeGods'] as Map<String, dynamic>?) ?? {};
+    final cloudFreeIds =
+        (cloudFree['ids'] as List?)?.cast<String>().toSet() ?? <String>{};
+    final cloudFreeDate = cloudFree['lastClaimDate'] as String? ?? '';
+    await DailyFreeService.mergeFromCloud(cloudFreeIds, cloudFreeDate);
 
     debugPrint(
         'Firestore sync done: ${mergedGodFavs.length} gods, ${mergedPcFavs.length} pc');

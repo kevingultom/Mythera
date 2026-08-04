@@ -160,6 +160,8 @@ class BattleEngine {
     'Hindu|Ganesha': 6.0,
     'Hindu|Buddha': 4.5,
     'Hindu|Radha': 4.0,
+    // Chinese
+    'Chinese|Dragon King of the East (Ao Guang)': 8.3,
   };
 
   // ─── Base strength band for each visible power tier (the Codex "Tier"
@@ -375,8 +377,8 @@ class BattleEngine {
   // the myth (requirement: results must not contradict established lore).
   static final List<_CanonicalMatch> _canonical = [
     _CanonicalMatch('Greek', 'Heracles', 'Hydra', 0.93,
-        _Bi('Heracles membakar setiap luka setelah memenggal kepala Hydra, mencegah kepala baru tumbuh — salah satu dari Dua Belas Tugasnya yang paling terkenal.',
-            'Heracles cauterized each stump after beheading the Hydra, preventing new heads from regrowing — one of his most famous Twelve Labors.')),
+        _Bi('Heracles membakar setiap luka setelah memenggal kepala Hydra, mencegah kepala baru tumbuh, salah satu dari Dua Belas Tugasnya yang paling terkenal.',
+            'Heracles cauterized each stump after beheading the Hydra, preventing new heads from regrowing, one of his most famous Twelve Labors.')),
     _CanonicalMatch('Greek', 'Heracles', 'Cerberus', 0.90,
         _Bi('Sebagai tugas terakhir dan tersulit, Heracles menaklukkan dan membawa Cerberus hidup-hidup dari Dunia Bawah hanya dengan kekuatan tangan kosong.',
             "As his final and hardest labor, Heracles subdued and carried Cerberus alive out of the Underworld using nothing but his bare hands.")),
@@ -390,14 +392,14 @@ class BattleEngine {
         _Bi('Odysseus mengelabui dan membutakan Kiklops Polyphemus dengan tiang kayu terbakar, lalu meloloskan diri bersama anak buahnya.',
             'Odysseus tricked and blinded the Cyclops Polyphemus with a burning wooden stake, then escaped with his surviving crew.')),
     _CanonicalMatch('Greek', 'Odysseus', 'Sirens', 0.80,
-        _Bi('Dengan menyumbat telinga awaknya dan mengikat dirinya ke tiang kapal, Odysseus mendengar nyanyian Sirene tanpa binasa — satu-satunya yang selamat dari godaan itu.',
-            "By plugging his crew's ears and binding himself to the mast, Odysseus survived the Sirens' song — the only man ever to hear it and live.")),
+        _Bi('Dengan menyumbat telinga awaknya dan mengikat dirinya ke tiang kapal, Odysseus mendengar nyanyian Sirene tanpa binasa, satu-satunya yang selamat dari godaan itu.',
+            "By plugging his crew's ears and binding himself to the mast, Odysseus survived the Sirens' song, the only man ever to hear it and live.")),
     _CanonicalMatch('Greek', 'Zeus', 'Cronus', 0.92,
         _Bi('Zeus memimpin Titanomakhia selama 10 tahun dan akhirnya menggulingkan ayahnya, Kronos, memenjarakannya di Tartarus selamanya.',
             'Zeus led the ten-year Titanomachy and ultimately overthrew his father Cronus, imprisoning him in Tartarus forever.')),
     _CanonicalMatch('Greek', 'Zeus', 'Atlas', 0.88,
-        _Bi('Setelah kekalahan para Titan, Zeus menghukum Atlas untuk memikul langit di pundaknya selamanya — bukti kekuasaan Zeus yang tak terbantahkan.',
-            "After the Titans' defeat, Zeus condemned Atlas to bear the sky upon his shoulders forever — undeniable proof of Zeus's supreme authority.")),
+        _Bi('Setelah kekalahan para Titan, Zeus menghukum Atlas untuk memikul langit di pundaknya selamanya, bukti kekuasaan Zeus yang tak terbantahkan.',
+            "After the Titans' defeat, Zeus condemned Atlas to bear the sky upon his shoulders forever, undeniable proof of Zeus's supreme authority.")),
     _CanonicalMatch('Greek', 'Athena', 'Ares', 0.82,
         _Bi('Dalam Iliad, Athena berulang kali mengalahkan Ares secara langsung di medan perang, membuktikan strategi mengungguli kebrutalan semata.',
             'In the Iliad, Athena repeatedly bests Ares directly on the battlefield, proving that strategy triumphs over brute savagery alone.')),
@@ -405,14 +407,14 @@ class BattleEngine {
         _Bi("Setelah perselisihan panjang di hadapan para dewa (Contendings of Horus and Seth), Horus akhirnya dinyatakan sebagai pewaris sah takhta Mesir.",
             'After a long divine tribunal (the Contendings of Horus and Seth), Horus was ultimately declared the rightful heir to the throne of Egypt.')),
     _CanonicalMatch('Egyptian', 'Seth', 'Osiris', 0.85,
-        _Bi('Set membunuh dan mencabik tubuh saudaranya sendiri, Osiris, demi merebut takhta — kemenangan kelam yang menjadi inti mitos kematian dan kebangkitan Mesir.',
-            "Seth murdered and dismembered his own brother Osiris to seize the throne — a dark victory at the heart of Egypt's death-and-rebirth myth.")),
+        _Bi('Set membunuh dan mencabik tubuh saudaranya sendiri, Osiris, demi merebut takhta, kemenangan kelam yang menjadi inti mitos kematian dan kebangkitan Mesir.',
+            "Seth murdered and dismembered his own brother Osiris to seize the throne, a dark victory at the heart of Egypt's death-and-rebirth myth.")),
     _CanonicalMatch('Egyptian', 'Ra', 'Apep', 0.88,
-        _Bi('Setiap malam, Ra dan pengiringnya bertarung melawan Apep di kegelapan Duat — dan setiap fajar membuktikan Ra selalu menang, memungkinkan matahari terbit kembali.',
-            "Every night, Ra and his retinue battle Apep through the darkness of the Duat — and every dawn proves Ra's victory, letting the sun rise anew.")),
+        _Bi('Setiap malam, Ra dan pengiringnya bertarung melawan Apep di kegelapan Duat, dan setiap fajar membuktikan Ra selalu menang, memungkinkan matahari terbit kembali.',
+            "Every night, Ra and his retinue battle Apep through the darkness of the Duat, and every dawn proves Ra's victory, letting the sun rise anew.")),
     _CanonicalMatch('Egyptian', 'Isis', 'Seth', 0.78,
-        _Bi('Kecerdikan dan sihir Isis berulang kali mengungguli Set — ia berhasil menghidupkan kembali Osiris dan melindungi Horus hingga dewasa meski dikejar-kejar Set.',
-            "Isis's cunning and magic repeatedly outmatched Seth — she revived Osiris and protected Horus into adulthood despite being hunted by Seth.")),
+        _Bi('Kecerdikan dan sihir Isis berulang kali mengungguli Set: ia berhasil menghidupkan kembali Osiris dan melindungi Horus hingga dewasa meski dikejar-kejar Set.',
+            "Isis's cunning and magic repeatedly outmatched Seth: she revived Osiris and protected Horus into adulthood despite being hunted by Seth.")),
     _CanonicalMatch('Nordic', 'Thor', 'Jörmungandr', 0.85,
         _Bi('Di Ragnarök, Thor akhirnya membunuh Jörmungandr sang Ular Dunia dengan pukulan Mjolnir yang mematikan, meski ia sendiri gugur sembilan langkah kemudian akibat bisa sang ular.',
             'At Ragnarök, Thor finally slays Jörmungandr the World Serpent with a fatal blow from Mjolnir, though he himself dies nine steps later from its venom.')),
@@ -429,19 +431,19 @@ class BattleEngine {
         _Bi('Setelah menyerahkan pedang saktinya demi cinta, Freyr bertarung tanpa senjata terkuatnya melawan Surtr di Ragnarök dan akhirnya kalah.',
             "Having given up his magic sword for love, Freyr fights without his strongest weapon against Surtr at Ragnarök and ultimately falls.")),
     _CanonicalMatch('Nordic', 'Loki', 'Baldur', 0.80,
-        _Bi('Loki mengelabui dewa buta Hodr untuk melemparkan anak panah bermata mistletoe — satu-satunya benda yang bisa melukai Baldur — dan berhasil membunuhnya.',
-            'Loki tricked the blind god Hodr into throwing a mistletoe-tipped dart — the only thing capable of harming Baldur — successfully killing him.')),
+        _Bi('Loki mengelabui dewa buta Hodr untuk melemparkan anak panah bermata mistletoe, satu-satunya benda yang bisa melukai Baldur, dan berhasil membunuhnya.',
+            'Loki tricked the blind god Hodr into throwing a mistletoe-tipped dart, the only thing capable of harming Baldur, successfully killing him.')),
     _CanonicalMatch('Hindu', 'Rama', 'Ravana', 0.92,
         _Bi('Setelah pertempuran epik di Lanka, Rama membunuh Ravana dengan Brahmastra, menyelamatkan Sita dan mengakhiri tirani raja iblis berkepala sepuluh itu.',
             "After an epic battle at Lanka, Rama slew Ravana with the Brahmastra, rescuing Sita and ending the ten-headed demon king's tyranny.")),
     _CanonicalMatch('Hindu', 'Durga', 'Asura', 0.90,
-        _Bi('Durga diciptakan khusus dari energi gabungan para dewa untuk mengalahkan Mahishasura, iblis kerbau yang tak bisa dibunuh pria manapun — dan ia berhasil.',
-            'Durga was created specifically from the combined energy of the gods to defeat the buffalo-demon Mahishasura, who could not be slain by any man — and she succeeded.')),
+        _Bi('Durga diciptakan khusus dari energi gabungan para dewa untuk mengalahkan Mahishasura, iblis kerbau yang tak bisa dibunuh pria manapun, dan ia berhasil.',
+            'Durga was created specifically from the combined energy of the gods to defeat the buffalo-demon Mahishasura, who could not be slain by any man, and she succeeded.')),
     _CanonicalMatch('Hindu', 'Kali', 'Asura', 0.88,
         _Bi('Kali lahir dari dahi Durga untuk melahap iblis Raktabija, meminum darahnya sebelum sempat menyentuh tanah dan berlipat ganda.',
             "Kali was born from Durga's brow to devour the demon Raktabija, drinking his blood before it could touch the ground and multiply him.")),
     _CanonicalMatch('Hindu', 'Narasimha', 'Asura', 0.90,
-        _Bi('Narasimha membunuh raja iblis Hiranyakashipu yang tak bisa dibunuh manusia atau hewan — dengan wujud manusia-singa di ambang pintu saat senja.',
+        _Bi('Narasimha membunuh raja iblis Hiranyakashipu yang tak bisa dibunuh manusia atau hewan, dengan wujud manusia-singa di ambang pintu saat senja.',
             'Narasimha slew the demon king Hiranyakashipu, who could not be killed by man or beast, by taking a man-lion form at a threshold at twilight.')),
     _CanonicalMatch('Hindu', 'Vishnu', 'Asura', 0.87,
         _Bi('Melalui berbagai avatarnya, Vishnu berulang kali turun untuk mengalahkan para Asura yang mengancam keseimbangan kosmis.',
@@ -451,7 +453,7 @@ class BattleEngine {
             'As king of the Devas, Indra personally leads the gods\' forces in their eternal war against the Asuras.')),
     _CanonicalMatch('Hindu', 'Garuda', 'Naga', 0.85,
         _Bi('Garuda adalah musuh bebuyutan sekaligus pemangsa alami para Naga sejak lahir, permusuhan abadi dalam mitologi Hindu.',
-            'Garuda has been the eternal enemy and natural predator of the Nagas since birth — an ancient rivalry in Hindu mythology.')),
+            'Garuda has been the eternal enemy and natural predator of the Nagas since birth, an ancient rivalry in Hindu mythology.')),
     _CanonicalMatch('Japanese', 'Momotaro', 'Oni', 0.88,
         _Bi('Dibantu tiga sahabat setianya, si anjing, monyet, dan burung pegar, Momotaro menyerbu benteng Onigashima dan menaklukkan sang pemimpin Oni, memaksanya menyerah dan mengembalikan seluruh harta rampasan.',
             'Aided by his three loyal companions, a dog, a monkey, and a pheasant, Momotaro storms the fortress of Onigashima and subdues the Oni chieftain, forcing him to surrender and return all his plundered treasure.')),
@@ -501,20 +503,20 @@ class BattleEngine {
     final pct = (prob * 100).round();
     if (pct >= 88) {
       return _Bi(
-          'Hasilnya nyaris tanpa keraguan — sebuah kemenangan yang telah tertulis sejak awal, dengan peluang menang sebesar $pct%.',
-          "The outcome is almost beyond doubt — a victory written since the dawn of the myth, with a $pct% chance of triumph.");
+          'Hasilnya nyaris tanpa keraguan, sebuah kemenangan yang telah tertulis sejak awal, dengan peluang menang sebesar $pct%.',
+          "The outcome is almost beyond doubt, a victory written since the dawn of the myth, with a $pct% chance of triumph.");
     } else if (pct >= 75) {
       return _Bi(
-          'Sebuah kemenangan gemilang, diraih dengan keunggulan yang meyakinkan — peluang menang $pct%.',
-          'A resounding victory, secured with commanding advantage — a $pct% chance of triumph.');
+          'Sebuah kemenangan gemilang, diraih dengan keunggulan yang meyakinkan, peluang menang $pct%.',
+          'A resounding victory, secured with commanding advantage, a $pct% chance of triumph.');
     } else if (pct >= 60) {
       return _Bi(
-          'Kemenangan yang diperjuangkan dengan susah payah, bukan tanpa perlawanan sengit dari sang lawan — peluang menang $pct%.',
-          "A hard-won victory, not without fierce resistance from the opponent — a $pct% chance of triumph.");
+          'Kemenangan yang diperjuangkan dengan susah payah, bukan tanpa perlawanan sengit dari sang lawan, peluang menang $pct%.',
+          "A hard-won victory, not without fierce resistance from the opponent, a $pct% chance of triumph.");
     } else {
       return _Bi(
-          'Kemenangan yang nyaris berbalik arah — hanya keunggulan tipis yang memutus pertarungan sengit ini, peluang menang $pct%.',
-          'A victory that nearly slipped away — only the narrowest of edges decided this fierce clash, a $pct% chance of triumph.');
+          'Kemenangan yang nyaris berbalik arah, hanya keunggulan tipis yang memutus pertarungan sengit ini, peluang menang $pct%.',
+          'A victory that nearly slipped away, only the narrowest of edges decided this fierce clash, a $pct% chance of triumph.');
     }
   }
 
@@ -628,9 +630,9 @@ class BattleEngine {
         titleId: 'Tercatat dalam Mitologi',
         titleEn: 'Attested in Myth',
         descId:
-            'Kisah asli mencatat ${winner.name} mengalahkan ${loser.name} — hasil ini mengikuti sumber mitologi, bukan sekadar hitungan kekuatan.',
+            'Kisah asli mencatat ${winner.name} mengalahkan ${loser.name}: hasil ini mengikuti sumber mitologi, bukan sekadar hitungan kekuatan.',
         descEn:
-            'The original tales record ${winner.name} defeating ${loser.name} — this outcome follows the myth itself, not mere power math.',
+            'The original tales record ${winner.name} defeating ${loser.name}: this outcome follows the myth itself, not mere power math.',
       ),
     ];
   }
@@ -692,10 +694,10 @@ class BattleEngine {
         titleId: 'Kejutan: Peringkat Lebih Rendah Menang',
         titleEn: 'Upset: The Lower Rank Wins',
         descId: byProwess
-            ? 'Meski ${loser.name} berperingkat lebih tinggi ($lLabel vs $wLabel), kekuatan ${winner.name} jauh lebih berorientasi pada pertarungan langsung — insting petarung murni itulah yang membalikkan keadaan dalam duel satu lawan satu ini.'
+            ? 'Meski ${loser.name} berperingkat lebih tinggi ($lLabel vs $wLabel), kekuatan ${winner.name} jauh lebih berorientasi pada pertarungan langsung, dan insting petarung murni itulah yang membalikkan keadaan dalam duel satu lawan satu ini.'
             : 'Meski ${loser.name} berperingkat lebih tinggi ($lLabel vs $wLabel), keunggulan elemental ${winner.name} menjadi penentu yang membalikkan keadaan dalam duel langsung ini.',
         descEn: byProwess
-            ? "Although ${loser.name} holds the higher rank ($lLabel vs $wLabel), ${winner.name}'s powers are far more combat-oriented — that raw fighting instinct is what turns the tables in this one-on-one duel."
+            ? "Although ${loser.name} holds the higher rank ($lLabel vs $wLabel), ${winner.name}'s powers are far more combat-oriented, and that raw fighting instinct is what turns the tables in this one-on-one duel."
             : "Although ${loser.name} holds the higher rank ($lLabel vs $wLabel), ${winner.name}'s elemental edge proves decisive and turns the tables in this direct duel.",
       ));
     } else if (winnerGodTier != null &&
@@ -710,9 +712,9 @@ class BattleEngine {
         titleId: 'Kesenjangan Tier',
         titleEn: 'Tier Gap',
         descId:
-            '${winner.name} berperingkat ${winnerGodTier.label}, sementara ${loser.name} "hanya" berperingkat ${loserGodTier.label} — kesenjangan yang diakui di seluruh mitologi.',
+            '${winner.name} berperingkat ${winnerGodTier.label}, sementara ${loser.name} "hanya" berperingkat ${loserGodTier.label}, kesenjangan yang diakui di seluruh mitologi.',
         descEn:
-            '${winner.name} ranks as ${winnerGodTier.label}, while ${loser.name} sits "only" at ${loserGodTier.label} — a gap recognized across mythology.',
+            '${winner.name} ranks as ${winnerGodTier.label}, while ${loser.name} sits "only" at ${loserGodTier.label}, a gap recognized across mythology.',
       ));
     } else if (gap > 2.5) {
       factors.add(BattleFactor(
@@ -740,9 +742,9 @@ class BattleEngine {
         titleId: 'Pertarungan Nyaris Berimbang',
         titleEn: 'A Near-Even Match',
         descId:
-            '${winner.name} dan ${loser.name} hampir setara — hanya selisih tipis dari status dan kekuatan yang menentukan pemenang.',
+            '${winner.name} dan ${loser.name} hampir setara, hanya selisih tipis dari status dan kekuatan yang menentukan pemenang.',
         descEn:
-            '${winner.name} and ${loser.name} are nearly equal — only a razor-thin edge in status and power decided the winner.',
+            '${winner.name} and ${loser.name} are nearly equal, only a razor-thin edge in status and power decided the winner.',
       ));
     }
 
@@ -754,9 +756,9 @@ class BattleEngine {
         titleId: 'Naluri Petarung Sejati',
         titleEn: 'Born Fighter',
         descId:
-            '${winner.name} juga dikenal sebagai sosok petarung sejati — kekuatannya jauh lebih berorientasi pada pertarungan langsung dibanding ${loser.name}.',
+            '${winner.name} juga dikenal sebagai sosok petarung sejati, kekuatannya jauh lebih berorientasi pada pertarungan langsung dibanding ${loser.name}.',
         descEn:
-            "${winner.name} is also known as a true fighter — their powers are far more oriented toward direct combat than ${loser.name}'s.",
+            "${winner.name} is also known as a true fighter, their powers are far more oriented toward direct combat than ${loser.name}'s.",
       ));
     }
 
@@ -792,40 +794,40 @@ class BattleEngine {
     if (counterDomain != null) {
       final label = _domainLabel[counterDomain]!;
       idBuf.write(
-          'Di sinilah kunci pertarungan ini: kekuatan ${label.id} yang dikuasai ${winner.name} — terutama lewat kemampuan "$winnerPower" — secara alami menemukan celah pada kemampuan "$loserPower" milik ${loser.name}, sebuah keunggulan elemental yang telah terbukti berulang kali dalam kisah-kisah mitologi. ');
+          'Di sinilah kunci pertarungan ini: kekuatan ${label.id} yang dikuasai ${winner.name}, terutama lewat kemampuan "$winnerPower", secara alami menemukan celah pada kemampuan "$loserPower" milik ${loser.name}, sebuah keunggulan elemental yang telah terbukti berulang kali dalam kisah-kisah mitologi. ');
       enBuf.write(
-          "Here lies the key to this clash: ${winner.name}'s command of ${label.en} — channeled through \"$winnerPowerEn\" — naturally exposes a weakness in ${loser.name}'s \"$loserPowerEn\", an elemental edge proven time and again across the myths. ");
+          "Here lies the key to this clash: ${winner.name}'s command of ${label.en}, channeled through \"$winnerPowerEn\", naturally exposes a weakness in ${loser.name}'s \"$loserPowerEn\", an elemental edge proven time and again across the myths. ");
     }
 
     if (isRankUpset) {
       final lLabel = loserGodTier!.label;
       final wLabel = winnerGodTier!.label;
       idBuf.write(
-          'Di atas kertas, ${loser.name} berperingkat lebih tinggi ($lLabel, di atas $wLabel milik ${winner.name}). Namun pertarungan satu lawan satu bukan sekadar soal kedudukan — kekuatan "$winnerPower" milik ${winner.name} jauh lebih tajam dalam pertarungan langsung, dan itulah yang akhirnya membalikkan keadaan. ');
+          'Di atas kertas, ${loser.name} berperingkat lebih tinggi ($lLabel, di atas $wLabel milik ${winner.name}). Namun pertarungan satu lawan satu bukan sekadar soal kedudukan: kekuatan "$winnerPower" milik ${winner.name} jauh lebih tajam dalam pertarungan langsung, dan itulah yang akhirnya membalikkan keadaan. ');
       enBuf.write(
-          "On paper, ${loser.name} holds the higher rank ($lLabel, above ${winner.name}'s $wLabel). But a one-on-one duel isn't just about standing — ${winner.name}'s \"$winnerPowerEn\" cuts far sharper in direct combat, and that is what ultimately turns the tables. ");
+          "On paper, ${loser.name} holds the higher rank ($lLabel, above ${winner.name}'s $wLabel). But a one-on-one duel isn't just about standing: ${winner.name}'s \"$winnerPowerEn\" cuts far sharper in direct combat, and that is what ultimately turns the tables. ");
     } else if (winnerGodTier != null &&
         loserGodTier != null &&
         _tierRank(winnerGodTier) > _tierRank(loserGodTier)) {
       idBuf.write(
-          'Dalam sistem peringkat kekuatan mitologi, ${winner.name} berada di jajaran ${winnerGodTier.label}, jauh di atas ${loser.name} yang "hanya" berperingkat ${loserGodTier.label} — kesenjangan tingkat yang sulit diabaikan. ');
+          'Dalam sistem peringkat kekuatan mitologi, ${winner.name} berada di jajaran ${winnerGodTier.label}, jauh di atas ${loser.name} yang "hanya" berperingkat ${loserGodTier.label}, kesenjangan tingkat yang sulit diabaikan. ');
       enBuf.write(
-          "By the mythology's own power ranking, ${winner.name} stands among the ${winnerGodTier.label} ranks, well above ${loser.name}, who sits \"only\" at ${loserGodTier.label} — a tier gap that's hard to ignore. ");
+          "By the mythology's own power ranking, ${winner.name} stands among the ${winnerGodTier.label} ranks, well above ${loser.name}, who sits \"only\" at ${loserGodTier.label}, a tier gap that's hard to ignore. ");
     } else if (tierGap > 2.5) {
       idBuf.write(
-          'Sebagai ${winnerRole.id}, wibawa dan kekuasaan ${winner.name} jauh melampaui ${loser.name} yang hanya berkedudukan sebagai ${loserRole.id} — sebuah jurang kekuatan yang hampir mustahil dijembatani. ');
+          'Sebagai ${winnerRole.id}, wibawa dan kekuasaan ${winner.name} jauh melampaui ${loser.name} yang hanya berkedudukan sebagai ${loserRole.id}, sebuah jurang kekuatan yang hampir mustahil dijembatani. ');
       enBuf.write(
-          "As ${winnerRole.en}, ${winner.name}'s authority and power tower over ${loser.name}, who stands merely as ${loserRole.en} — a gulf in strength almost impossible to bridge. ");
+          "As ${winnerRole.en}, ${winner.name}'s authority and power tower over ${loser.name}, who stands merely as ${loserRole.en}, a gulf in strength almost impossible to bridge. ");
     } else if (tierGap > 1.0) {
       idBuf.write(
-          '${winner.name}, ${winnerRole.id}, membawa status dan jam terbang pertempuran yang lebih tinggi dibanding ${loser.name} yang berkedudukan sebagai ${loserRole.id} — pengalaman yang akhirnya menentukan arah pertarungan. ');
+          '${winner.name}, ${winnerRole.id}, membawa status dan jam terbang pertempuran yang lebih tinggi dibanding ${loser.name} yang berkedudukan sebagai ${loserRole.id}, pengalaman yang akhirnya menentukan arah pertarungan. ');
       enBuf.write(
-          '${winner.name}, ${winnerRole.en}, carries a higher standing and battle experience than ${loser.name}, who stands as ${loserRole.en} — experience that ultimately tips the scales. ');
+          '${winner.name}, ${winnerRole.en}, carries a higher standing and battle experience than ${loser.name}, who stands as ${loserRole.en}, experience that ultimately tips the scales. ');
     } else {
       idBuf.write(
-          'Keduanya sesungguhnya sepadan — ${winner.name} (${winnerRole.id}) dan ${loser.name} (${loserRole.id}) sama-sama layak menang, membuat pertarungan ini goyah hingga detik terakhir. ');
+          'Keduanya sesungguhnya sepadan: ${winner.name} (${winnerRole.id}) dan ${loser.name} (${loserRole.id}) sama-sama layak menang, membuat pertarungan ini goyah hingga detik terakhir. ');
       enBuf.write(
-          "The two are truly evenly matched — ${winner.name} (${winnerRole.en}) and ${loser.name} (${loserRole.en}) both deserved to win, keeping this fight in the balance until the very last moment. ");
+          "The two are truly evenly matched: ${winner.name} (${winnerRole.en}) and ${loser.name} (${loserRole.en}) both deserved to win, keeping this fight in the balance until the very last moment. ");
     }
 
     idBuf.write(flourish.id);

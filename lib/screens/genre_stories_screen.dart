@@ -3,8 +3,12 @@ import '../models/history_model.dart';
 import '../data/history_data.dart';
 import '../l10n/language_provider.dart';
 import '../widgets/god_card.dart';
+import '../widgets/premium_lock_sheet.dart';
+import '../services/premium_service.dart';
 import '../services/sound_service.dart';
 import 'history_story_detail_screen.dart';
+
+const _goldBright = Color(0xFFE0A82E);
 
 /// Shows the mythological stories that belong to a single pantheon.
 /// Reached from the Stories tab's genre cards.
@@ -98,11 +102,17 @@ class GenreStoriesScreen extends StatelessWidget {
             Expanded(
               child: stories.isEmpty
                   ? _buildEmpty(lang)
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                      itemCount: stories.length,
-                      itemBuilder: (_, i) =>
-                          _buildStoryCard(context, stories[i], lang, color),
+                  : ValueListenableBuilder<bool>(
+                      valueListenable: PremiumService.premiumNotifier,
+                      builder: (context, _, __) {
+                        final locked = PremiumService.isMythStoryLocked();
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                          itemCount: stories.length,
+                          itemBuilder: (_, i) => _buildStoryCard(
+                              context, stories[i], lang, color, locked),
+                        );
+                      },
                     ),
             ),
           ],
@@ -155,15 +165,17 @@ class GenreStoriesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStoryCard(
-      BuildContext context, MythStory story, String lang, Color color) {
+  Widget _buildStoryCard(BuildContext context, MythStory story, String lang,
+      Color color, bool isLocked) {
     // Stories with an illustration get an image-backed hero card; those
     // without fall back to the original compact text card.
     if (story.imageUrl.isNotEmpty) {
-      return _buildImageCard(context, story, lang, color);
+      return _buildImageCard(context, story, lang, color, isLocked);
     }
     return GestureDetector(
-      onTap: () => _open(context, story),
+      onTap: () => isLocked
+          ? showPremiumLockSheet(context)
+          : _open(context, story),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(14),
@@ -178,14 +190,23 @@ class GenreStoriesScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    story.localizedTimeline(lang),
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.2,
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          story.localizedTimeline(lang),
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                      ),
+                      if (isLocked)
+                        const Icon(Icons.lock_rounded,
+                            color: _goldBright, size: 14),
+                    ],
                   ),
                   const SizedBox(height: 3),
                   Text(
@@ -202,8 +223,9 @@ class GenreStoriesScreen extends StatelessWidget {
                     story.localizedSummary(lang),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Color(0xFFAAAAAA),
+                    style: TextStyle(
+                      color: const Color(0xFFAAAAAA)
+                          .withValues(alpha: isLocked ? 0.5 : 1),
                       fontSize: 12,
                       height: 1.45,
                     ),
@@ -227,10 +249,12 @@ class GenreStoriesScreen extends StatelessWidget {
   /// legible over it. The border sits on an outer container while the image
   /// is clipped by an inner [ClipRRect] with a slightly smaller radius, so
   /// the rounded corners never show a seam.
-  Widget _buildImageCard(
-      BuildContext context, MythStory story, String lang, Color color) {
+  Widget _buildImageCard(BuildContext context, MythStory story, String lang,
+      Color color, bool isLocked) {
     return GestureDetector(
-      onTap: () => _open(context, story),
+      onTap: () => isLocked
+          ? showPremiumLockSheet(context)
+          : _open(context, story),
       child: Container(
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
@@ -274,6 +298,20 @@ class GenreStoriesScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (isLocked)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.35),
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.5),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.lock_rounded,
+                          color: _goldBright, size: 22),
+                    ),
+                  ),
                 Positioned(
                   left: 14,
                   right: 14,

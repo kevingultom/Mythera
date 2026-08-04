@@ -5,6 +5,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 /// ```
 /// users/{uid}
 ///   ├── displayName, email, photoUrl, createdAt
+///   ├── premium: bool — set ONLY by the payment webhook (Admin SDK),
+///   │     never writable by the client (see firestore.rules)
 ///   ├── settings/
 ///   │     ├── dailyReminders: bool
 ///   │     ├── soundEffects: bool
@@ -12,12 +14,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 ///   ├── favorites/
 ///   │     ├── godIds: List<String>
 ///   │     └── pcIds: List<String>
-///   └── reading/
-///         ├── readGodIds: List<String>
-///         ├── readStoryIds: List<String>
-///         ├── streak: int
-///         ├── lastDate: String
-///         └── recent: List<Map>
+///   ├── reading/
+///   │     ├── readGodIds: List<String>
+///   │     ├── readStoryIds: List<String>
+///   │     ├── streak: int
+///   │     ├── lastDate: String
+///   │     └── recent: List<Map>
+///   └── progress/
+///         └── freeGods: { ids: List<String>, lastClaimDate: String }
 /// ```
 class FirestoreService {
   FirestoreService._();
@@ -59,6 +63,23 @@ class FirestoreService {
     final data = snap.data();
     if (data == null || data['ids'] == null) return {};
     return (data['ids'] as List).cast<String>().toSet();
+  }
+
+  // ── Daily Free-Unlocked Gods ──────────────────────────────────
+  /// The gods unlocked via the daily free-god roll, plus the last-claim date
+  /// (so a reinstall can't reset the daily limit and claim again same-day).
+  Future<void> saveFreeUnlockedGods(
+      String uid, Set<String> ids, String lastClaimDate) async {
+    await _userDoc(uid).collection('progress').doc('freeGods').set({
+      'ids': ids.toList(),
+      'lastClaimDate': lastClaimDate,
+    }, SetOptions(merge: true));
+  }
+
+  Future<Map<String, dynamic>> loadFreeUnlockedGods(String uid) async {
+    final snap =
+        await _userDoc(uid).collection('progress').doc('freeGods').get();
+    return snap.data() ?? {};
   }
 
   // ── Pop Culture Favorites ─────────────────────────────────────
@@ -121,6 +142,17 @@ class FirestoreService {
         'createdAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
     }
+  }
+
+  // ── Premium status ────────────────────────────────────────────
+  /// Live listener on the user's `premium` flag. This field is only ever
+  /// set true by the payment webhook's Cloud Function (Admin SDK) — the
+  /// client is blocked from writing it by firestore.rules, so this is
+  /// read-only here on purpose (no corresponding `savePremium`).
+  Stream<bool> watchPremiumStatus(String uid) {
+    return _userDoc(uid)
+        .snapshots()
+        .map((snap) => snap.data()?['premium'] == true);
   }
 
   // ── FCM Token ─────────────────────────────────────────────────
@@ -191,6 +223,7 @@ class FirestoreService {
       loadPcFavorites(uid),
       loadReadingProgress(uid),
       loadSettings(uid),
+      loadFreeUnlockedGods(uid),
     ]);
 
     return {
@@ -198,6 +231,7 @@ class FirestoreService {
       'pcFavorites': results[1],
       'reading': results[2],
       'settings': results[3],
+      'freeGods': results[4],
     };
   }
 }

@@ -67,7 +67,7 @@ const Map<String, _PcProfile> _pcProfiles = {
     ['Lightning', 'Thunder', 'Strength', 'Mjolnir', 'Immortality'],
     9.0,
     'Thor versi Marvel bertahan dari ledakan bintang neutron dan menghadapi entitas kosmik, jauh melampaui versi mitos aslinya.',
-    "Marvel's Thor survives the blast of a neutron star and faces cosmic entities — far beyond his original mythic self."),
+    "Marvel's Thor survives the blast of a neutron star and faces cosmic entities, far beyond his original mythic self."),
   'loki-marvel': _PcProfile(
     ['Tipu Daya', 'Sihir', 'Ilusi', 'Kecerdikan', 'Perubahan Wujud'],
     ['Trickery', 'Magic', 'Illusion', 'Cunning', 'Shapeshifting'],
@@ -109,7 +109,7 @@ const Map<String, _PcProfile> _pcProfiles = {
     ['Sun', 'Light', 'Magic', 'Creation', 'Healing'],
     8.9,
     'Amaterasu dalam Okami memakai Celestial Brush untuk melukis ulang realitas itu sendiri, menciptakan, menyembuhkan, dan menghancurkan.',
-    "Amaterasu in Okami wields the Celestial Brush to repaint reality itself — creating, healing, and destroying."),
+    "Amaterasu in Okami wields the Celestial Brush to repaint reality itself, creating, healing, and destroying."),
   'asura-wrath': _PcProfile(
     ['Kemarahan', 'Kekuatan', 'Perang', 'Ketahanan', 'Keabadian'],
     ['Wrath', 'Strength', 'War', 'Endurance', 'Immortality'],
@@ -226,8 +226,8 @@ const Map<String, _PcProfile> _pcProfiles = {
     ['Kebijaksanaan', 'Pengetahuan', 'Ramalan', 'Nasihat', 'Kecerdasan'],
     ['Wisdom', 'Knowledge', 'Prophecy', 'Counsel', 'Intellect'],
     2.5,
-    'Sebagai kepala terpenggal tanpa tubuh, Mimir sama sekali tak memiliki kemampuan bertarung fisik — kekuatannya murni terletak pada kebijaksanaan dan nasihatnya setelah dibebaskan dari 109 tahun penyiksaan Odin.',
-    "As a disembodied severed head, Mimir has no physical combat ability whatsoever — his power lies purely in his wisdom and counsel after being freed from 109 years of torture at Odin's hands."),
+    'Sebagai kepala terpenggal tanpa tubuh, Mimir sama sekali tak memiliki kemampuan bertarung fisik, kekuatannya murni terletak pada kebijaksanaan dan nasihatnya setelah dibebaskan dari 109 tahun penyiksaan Odin.',
+    "As a disembodied severed head, Mimir has no physical combat ability whatsoever; his power lies purely in his wisdom and counsel after being freed from 109 years of torture at Odin's hands."),
   'troll-gow': _PcProfile(
     ['Pukulan Batu', 'Lemparan Bebatuan', 'Lapisan Batu', 'Kekuatan Kasar', 'Ketahanan'],
     ['Stone Punches', 'Boulder Throwing', 'Rock Armor', 'Brute Strength', 'Endurance'],
@@ -269,7 +269,7 @@ const Map<String, _PcProfile> _pcProfiles = {
     ['Fire', 'Bite', 'Wings', 'Speed', 'Protective Scales'],
     3.5,
     'Dreki menyemburkan api dan menggigit cepat sebagai musuh reguler di Vanaheim dan Svartalfheim, meski God of War sengaja membuatnya versi kecil bersayap, berbeda dari naga Nordik asli Fafnir yang justru digambarkan sebagai ular raksasa tanpa sayap.',
-    'The Dreki breathes fire and bites swiftly as a regular enemy across Vanaheim and Svartalfheim, though God of War deliberately made it a small winged version — unlike the real Norse dragon Fafnir, who was actually depicted as a giant wingless serpent.'),
+    'The Dreki breathes fire and bites swiftly as a regular enemy across Vanaheim and Svartalfheim, though God of War deliberately made it a small winged version, unlike the real Norse dragon Fafnir, who was actually depicted as a giant wingless serpent.'),
 
   // ── Egyptian ──
   'khonshu-moonknight': _PcProfile(

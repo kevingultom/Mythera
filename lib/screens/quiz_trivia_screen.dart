@@ -43,6 +43,11 @@ class _QuizTriviaScreenState extends State<QuizTriviaScreen> {
   int _countdownNum = 3;
   Timer? _countdownTimer;
 
+  /// Guards against finishing twice. Answering the last question and the
+  /// countdown hitting zero can land in the same frame, and each path calls
+  /// _finishQuiz() — without this the results screen gets pushed twice.
+  bool _finished = false;
+
   @override
   void initState() {
     super.initState();
@@ -112,6 +117,8 @@ class _QuizTriviaScreenState extends State<QuizTriviaScreen> {
 
   /// Ends the quiz and navigates to the results screen with the current score.
   void _finishQuiz() {
+    if (_finished || !mounted) return;
+    _finished = true;
     _timer?.cancel();
     SoundService.playResult();
     Navigator.pushReplacement(
@@ -300,6 +307,31 @@ class _QuizTriviaScreenState extends State<QuizTriviaScreen> {
 
     if (_preQuizCountdown) {
       return _buildCountdownScreen(lang);
+    }
+
+    // A genre with no questions would otherwise crash on the index below.
+    // Shouldn't happen with the shipped data, but a bad genre key must not
+    // take the whole screen down.
+    if (_questions.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Text(
+                localize(
+                  lang,
+                  'Soal untuk kategori ini belum tersedia.',
+                  'No questions are available for this category yet.',
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
+              ),
+            ),
+          ),
+        ),
+      );
     }
 
     final q = _questions[_currentIndex];

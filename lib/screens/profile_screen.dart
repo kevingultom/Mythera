@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../l10n/language_provider.dart';
+import '../services/onboarding_service.dart';
 import '../services/settings_service.dart';
 import '../services/sound_service.dart';
 import '../services/firebase_auth_service.dart';
 import '../services/notification_service.dart';
 import 'about_screen.dart';
+import 'onboarding_screen.dart';
 import 'terms_of_service_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'help_screen.dart';
@@ -56,6 +58,57 @@ class ProfileScreenState extends State<ProfileScreen> {
     if (mounted) _loadSettings();
   }
 
+  /// Confirms, then clears the saved onboarding state and replays the
+  /// 7-page intro from the root navigator — same landing point a
+  /// first-time install reaches, so the patron-god pick and reminder
+  /// choice all run fresh.
+  Future<void> _replayIntro(String lang) async {
+    SoundService.playClick();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF161616),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          localize(lang, 'Ulangi Intro?', 'Replay Intro?'),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
+        content: Text(
+          localize(
+            lang,
+            'Kamu akan memilih ulang dewa pujaan dan preferensi lainnya dari awal.',
+            'You\'ll pick your patron god and other preferences again from scratch.',
+          ),
+          style: const TextStyle(color: Color(0xFFB0B0B0), fontSize: 13.5),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(localize(lang, 'Batal', 'Cancel'),
+                style: const TextStyle(color: Color(0xFF999999))),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(localize(lang, 'Ulangi', 'Replay'),
+                style: const TextStyle(color: _gold, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    await OnboardingService.reset();
+    if (!mounted) return;
+    Navigator.of(context, rootNavigator: true).pushReplacement(
+      PageRouteBuilder(
+        pageBuilder: (_, __, ___) => const OnboardingScreen(),
+        transitionsBuilder: (_, anim, __, child) =>
+            FadeTransition(opacity: anim, child: child),
+        transitionDuration: const Duration(milliseconds: 400),
+      ),
+    );
+  }
+
   void _openPage(Widget page) {
     Navigator.push(
       context,
@@ -93,12 +146,15 @@ class ProfileScreenState extends State<ProfileScreen> {
                 fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             // Account card
             _buildAccountCard(lang),
 
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
+
+            _sectionLabel(localize(lang, 'PENGATURAN', 'PREFERENCES')),
+            const SizedBox(height: 10),
 
             // Preferences card
             _card(
@@ -145,7 +201,10 @@ class ProfileScreenState extends State<ProfileScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 20),
+
+            _sectionLabel(localize(lang, 'INFORMASI', 'INFORMATION')),
+            const SizedBox(height: 10),
 
             // Information card
             _card(
@@ -168,6 +227,11 @@ class ProfileScreenState extends State<ProfileScreen> {
                 _infoRow(
                   label: localize(lang, 'Bantuan', 'Help'),
                   onTap: () => _openPage(const HelpScreen()),
+                ),
+                _divider(),
+                _infoRow(
+                  label: localize(lang, 'Ulangi Intro', 'Replay Intro'),
+                  onTap: () => _replayIntro(lang),
                 ),
               ],
             ),
@@ -206,9 +270,12 @@ class ProfileScreenState extends State<ProfileScreen> {
     final auth = FirebaseAuthService.instance;
     final user = auth.currentUser;
     final isAnon = auth.isAnonymous;
-    final displayName = user?.displayName ?? (isAnon
-        ? localize(lang, 'Pengguna Anonim', 'Anonymous User')
-        : user?.email ?? '');
+    final rawName = user?.displayName;
+    final displayName = (rawName != null && rawName.isNotEmpty)
+        ? rawName
+        : (isAnon
+            ? localize(lang, 'Pengguna Anonim', 'Anonymous User')
+            : (user?.email ?? localize(lang, 'Akun Google', 'Google Account')));
     final photoUrl = user?.photoURL;
 
     Future<void> _handleAuthTap() async {
@@ -227,26 +294,43 @@ class ProfileScreenState extends State<ProfileScreen> {
               );
             }
           }
-        } catch (e) {
+        } catch (e, st) {
+          // ignore: avoid_print
+          print('Google sign-in failed: $e\n$st');
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Login error: $e'),
+                content: Text(
+                    FirebaseAuthService.friendlyErrorMessage(e, lang)),
                 backgroundColor: Colors.red.shade800,
               ),
             );
           }
         }
       } else {
-        await auth.signOutGoogle();
-        if (mounted) {
-          setState(() {});
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content:
-                  Text(localize(lang, 'Telah logout', 'Signed out')),
-            ),
-          );
+        try {
+          await auth.signOutGoogle();
+          if (mounted) {
+            setState(() {});
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content:
+                    Text(localize(lang, 'Telah logout', 'Signed out')),
+              ),
+            );
+          }
+        } catch (e, st) {
+          // ignore: avoid_print
+          print('Sign-out failed: $e\n$st');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                    FirebaseAuthService.friendlyErrorMessage(e, lang)),
+                backgroundColor: Colors.red.shade800,
+              ),
+            );
+          }
         }
       }
     }
@@ -261,7 +345,7 @@ class ProfileScreenState extends State<ProfileScreen> {
             isAnon ? const Color(0xFF151515) : const Color(0xFF141210),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isAnon
               ? _cardBorder
@@ -270,19 +354,19 @@ class ProfileScreenState extends State<ProfileScreen> {
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(24, 28, 24, 24),
-        child: Column(
+        padding: const EdgeInsets.all(14),
+        child: Row(
           children: [
             // Avatar with ring
             Container(
-              padding: const EdgeInsets.all(3),
+              padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: isAnon
                       ? Colors.white.withValues(alpha: 0.12)
                       : _gold,
-                  width: 2,
+                  width: 1.6,
                 ),
                 gradient: isAnon
                     ? null
@@ -296,7 +380,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                       ),
               ),
               child: CircleAvatar(
-                radius: 32,
+                radius: 22,
                 backgroundColor: const Color(0xFF2A2A2A),
                 backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
                 child: photoUrl == null
@@ -307,112 +391,133 @@ class ProfileScreenState extends State<ProfileScreen> {
                         color: isAnon
                             ? const Color(0xFF666666)
                             : _gold.withValues(alpha: 0.7),
-                        size: 30,
+                        size: 21,
                       )
                     : null,
               ),
             ),
-            const SizedBox(height: 14),
-            // Display name
-            Text(
-              displayName,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.2,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            // Status with dot indicator
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isAnon ? const Color(0xFF666666) : const Color(0xFF4CAF50),
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  isAnon
-                      ? localize(lang, 'Belum login', 'Not signed in')
-                      : localize(lang, 'Tersync ke cloud', 'Synced to cloud'),
-                  style: TextStyle(
-                    color: isAnon ? const Color(0xFF777777) : const Color(0xFF4CAF50),
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            // Auth button
-            GestureDetector(
-              onTap: _handleAuthTap,
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(
-                  gradient: isAnon
-                      ? LinearGradient(
-                          colors: [
-                            _gold,
-                            _gold.withValues(alpha: 0.75),
-                          ],
-                        )
-                      : null,
-                  color: isAnon ? null : const Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: isAnon
-                        ? Colors.transparent
-                        : const Color(0xFF3A3A3A),
-                  ),
-                  boxShadow: isAnon
-                      ? [
-                          BoxShadow(
-                            color: _gold.withValues(alpha: 0.2),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      isAnon ? Icons.login_rounded : Icons.logout_rounded,
-                      color: isAnon ? Colors.black : const Color(0xFF999999),
-                      size: 16,
+            const SizedBox(width: 14),
+            // Name + status
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    displayName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.1,
                     ),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        isAnon
-                            ? localize(lang, 'Masuk dengan Google', 'Sign in with Google')
-                            : localize(lang, 'Keluar', 'Sign Out'),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: isAnon ? Colors.black : const Color(0xFF999999),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.3,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      Container(
+                        width: 5,
+                        height: 5,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isAnon
+                              ? const Color(0xFF666666)
+                              : const Color(0xFF4CAF50),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 5),
+                      Flexible(
+                        child: Text(
+                          isAnon
+                              ? localize(lang, 'Belum login', 'Not signed in')
+                              : localize(
+                                  lang, 'Tersync ke cloud', 'Synced to cloud'),
+                          style: TextStyle(
+                            color: isAnon
+                                ? const Color(0xFF777777)
+                                : const Color(0xFF4CAF50),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
+            const SizedBox(width: 10),
+            // Auth button — compact icon-only for a signed-in user, a
+            // small pill for the sign-in call-to-action (needs a label
+            // since it's the primary action on this screen).
+            GestureDetector(
+              onTap: _handleAuthTap,
+              child: isAnon
+                  ? Container(
+                      padding:
+                          const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [_gold, _gold.withValues(alpha: 0.75)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: _gold.withValues(alpha: 0.2),
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.login_rounded,
+                              color: Colors.black, size: 15),
+                          const SizedBox(width: 6),
+                          Text(
+                            localize(lang, 'Masuk', 'Sign in'),
+                            style: const TextStyle(
+                              color: Colors.black,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF1E1E1E),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFF3A3A3A)),
+                      ),
+                      child: const Icon(Icons.logout_rounded,
+                          color: Color(0xFF999999), size: 17),
+                    ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionLabel(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Color(0xFF8A8A8A),
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.2,
         ),
       ),
     );

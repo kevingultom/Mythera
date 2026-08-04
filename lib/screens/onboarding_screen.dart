@@ -26,27 +26,35 @@ class _Opt {
   final String value;
   final String label;
   final String? sub;
-  const _Opt(this.value, this.label, {this.sub});
+  final IconData icon;
+  const _Opt(this.value, this.label, {this.sub, required this.icon});
 }
 
 const _interests = <_Opt>[
-  _Opt('battles', 'Great Battles and Legends'),
-  _Opt('powers', 'Gods, Powers, and Symbols'),
-  _Opt('meanings', 'Meanings Behind the Stories'),
-  _Opt('surprise', 'Surprise Me'),
+  _Opt('battles', 'Great Battles and Legends',
+      icon: Icons.shield_rounded),
+  _Opt('powers', 'Gods, Powers, and Symbols',
+      icon: Icons.auto_awesome_rounded),
+  _Opt('meanings', 'Meanings Behind the Stories',
+      icon: Icons.menu_book_rounded),
+  _Opt('surprise', 'Surprise Me', icon: Icons.casino_rounded),
 ];
 
 const _rhythms = <_Opt>[
-  _Opt('Daily', 'Daily'),
-  _Opt('A Few Times a Week', 'A Few Times a Week'),
-  _Opt('When I Have Time', 'When I Have Time'),
+  _Opt('Daily', 'Daily', icon: Icons.wb_sunny_rounded),
+  _Opt('A Few Times a Week', 'A Few Times a Week',
+      icon: Icons.calendar_today_rounded),
+  _Opt('When I Have Time', 'When I Have Time',
+      icon: Icons.hourglass_empty_rounded),
 ];
 
 const _reminderOpts = <_Opt>[
   _Opt('yes', 'Enable daily reminders',
-      sub: 'A gentle nudge to read a new myth each day.'),
+      sub: 'A gentle nudge to read a new myth each day.',
+      icon: Icons.notifications_active_rounded),
   _Opt('no', 'Maybe later',
-      sub: 'You can switch this on anytime in Profile.'),
+      sub: 'You can switch this on anytime in Profile.',
+      icon: Icons.schedule_rounded),
 ];
 
 // The six realms, shown as image cards just like the Discover feed.
@@ -96,6 +104,21 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   final Stopwatch _welcomeClock = Stopwatch();
   Timer? _welcomeTicker;
 
+  // Entrance reveal for pages 2-7. Restarted on every page change so each
+  // page's content staggers in rather than appearing all at once — the
+  // welcome page keeps its own longer, letter-by-letter sequence above.
+  late final AnimationController _pageAnim = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 620),
+  );
+
+  // Breathing halo behind the patron portrait on the final page. Only
+  // repeats while that page is actually on screen (see _next/_back).
+  late final AnimationController _haloAnim = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2600),
+  );
+
   @override
   void initState() {
     super.initState();
@@ -119,8 +142,35 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   void dispose() {
     _controller.dispose();
     _welcomeAnim.dispose();
+    _pageAnim.dispose();
+    _haloAnim.dispose();
     _welcomeTicker?.cancel();
     super.dispose();
+  }
+
+  /// Staggered fade+rise for one piece of a page's content. [order] is the
+  /// item's position in the stagger (0 = first in), so a page can hand its
+  /// title 0, its subtitle 1, its tiles 2,3,4… and they arrive in sequence.
+  Widget _pageReveal(Widget child, int order) {
+    final start = (order * 0.09).clamp(0.0, 0.6);
+    return AnimatedBuilder(
+      animation: _pageAnim,
+      child: child,
+      builder: (context, child) {
+        final t = CurvedAnimation(
+          parent: _pageAnim,
+          curve: Interval(start, (start + 0.4).clamp(0.0, 1.0),
+              curve: Curves.easeOutCubic),
+        ).value;
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, 18 * (1 - t)),
+            child: child,
+          ),
+        );
+      },
+    );
   }
 
   // Fades + slides a piece of content up into place during a slice of the
@@ -255,40 +305,69 @@ class _OnboardingScreenState extends State<OnboardingScreen>
     _finishing = true;
     final god = _chosenGod;
 
-    // Favorite the chosen god (in-memory + persisted).
-    if (god != null) {
-      god.isBookmarked = true;
-      final ids = await BookmarkService.load();
-      ids.add(god.id);
-      await BookmarkService.save(ids);
+    // Save the patron god choice first and on its own — this is the one
+    // piece of onboarding state the rest of the app depends on (it's what
+    // keeps that god's legend free of the premium paywall). It must never
+    // be skipped because a *later* step (notifications, bookmarking) threw,
+    // which used to happen when this ran last inside one shared try block.
+    try {
+      await OnboardingService.complete(
+        patronGodId: god?.id ?? '',
+        pantheon: _realm ?? '',
+        rhythm: _rhythm ?? 'When I Have Time',
+      );
+    } catch (e) {
+      debugPrint("Saving onboarding choice failed: $e");
     }
 
-    // Reminder opt-in → daily-reminder preference, and actually schedule
-    // (or cancel) the local notification — matching Profile's toggle.
-    final remindersOn = _remind == 'yes';
-    await SettingsService.setDailyReminders(remindersOn);
-    if (remindersOn) {
-      await NotificationService.instance.scheduleDailyReminder();
-    } else {
-      await NotificationService.instance.cancelDailyReminder();
-    }
+    try {
+      // Favorite the chosen god (in-memory + persisted).
+      if (god != null) {
+        god.isBookmarked = true;
+        final ids = await BookmarkService.load();
+        ids.add(god.id);
+        await BookmarkService.save(ids);
+      }
 
-    await OnboardingService.complete(
-      patronGodId: god?.id ?? '',
-      pantheon: _realm ?? '',
-      rhythm: _rhythm ?? 'When I Have Time',
-    );
+      // Reminder opt-in → daily-reminder preference, and actually schedule
+      // (or cancel) the local notification — matching Profile's toggle.
+      final remindersOn = _remind == 'yes';
+      await SettingsService.setDailyReminders(remindersOn);
+      if (remindersOn) {
+        await NotificationService.instance.scheduleDailyReminder();
+      } else {
+        await NotificationService.instance.cancelDailyReminder();
+      }
+    } catch (e) {
+      debugPrint("Finish error: $e");
+    }
 
     if (!mounted) return;
     // Root navigator, not whatever nested one this screen happened to be
     // opened from (e.g. Profile's "Replay Intro") — this must replace the
     // whole app shell, not nest a new MainShell inside another tab.
+    //
+    // Deliberately slow and held-black at the start (rather than a plain
+    // cross-fade) so entering Mythera reads as "emerging from darkness"
+    // into Discover, not just a page swap.
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const MainShell(),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionsBuilder: (_, anim, __, child) {
+          final curved = CurvedAnimation(
+            parent: anim,
+            // Nothing happens for the first third — a held black beat —
+            // then eases into view across the rest.
+            curve: const Interval(0.34, 1.0, curve: Curves.easeOutCubic),
+          );
+          return Stack(
+            children: [
+              const ColoredBox(color: Colors.black),
+              FadeTransition(opacity: curved, child: child),
+            ],
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 1400),
       ),
     );
   }
@@ -362,15 +441,36 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                       child: Row(
                         children: [
                           for (int i = 0; i < _pageCount; i++) ...[
+                            // The current step takes twice the width of the
+                            // others, so position reads at a glance rather
+                            // than having to count filled bars.
                             Expanded(
+                              flex: i == _index ? 2 : 1,
                               child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 250),
-                                height: 5,
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
+                                height: 4,
                                 decoration: BoxDecoration(
-                                  color: i <= _index
-                                      ? _gold
-                                      : const Color(0xFF3A3A3A),
-                                  borderRadius: BorderRadius.circular(2.5),
+                                  gradient: i == _index
+                                      ? const LinearGradient(
+                                          colors: [_gold, _cta],
+                                        )
+                                      : null,
+                                  color: i == _index
+                                      ? null
+                                      : (i < _index
+                                          ? _gold.withValues(alpha: 0.45)
+                                          : const Color(0xFF2E2E2E)),
+                                  borderRadius: BorderRadius.circular(2),
+                                  boxShadow: i == _index
+                                      ? [
+                                          BoxShadow(
+                                            color:
+                                                _gold.withValues(alpha: 0.45),
+                                            blurRadius: 8,
+                                          ),
+                                        ]
+                                      : null,
                                 ),
                               ),
                             ),
@@ -386,7 +486,18 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     child: PageView(
                       controller: _controller,
                       physics: const NeverScrollableScrollPhysics(),
-                      onPageChanged: (i) => setState(() => _index = i),
+                      onPageChanged: (i) {
+                        setState(() => _index = i);
+                        // Replay the stagger for the page just landed on.
+                        // The welcome page runs its own longer sequence.
+                        if (i > 0) _pageAnim.forward(from: 0);
+                        // Halo only breathes on the final page.
+                        if (i == _pageCount - 1) {
+                          _haloAnim.repeat();
+                        } else if (_haloAnim.isAnimating) {
+                          _haloAnim.stop();
+                        }
+                      },
                       children: [
                         _welcomePage(),
                         _realmPage(),
@@ -422,29 +533,66 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     Padding(
                       padding: EdgeInsets.fromLTRB(24, 8, 24,
                           MediaQuery.of(context).padding.bottom + 16),
-                      child: SizedBox(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 220),
                         width: double.infinity,
-                        height: 48,
-                        child: ElevatedButton(
-                          onPressed: _canContinue ? _next : null,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _cta,
-                            disabledBackgroundColor: const Color(0xFF2A2A2A),
-                            foregroundColor: Colors.black,
-                            disabledForegroundColor: const Color(0xFF666666),
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                          ),
-                          child: Text(
-                            _index == _pageCount - 1
-                                ? 'Enter Mythera'
-                                : 'Continue',
-                            style: const TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.3,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          gradient: _canContinue
+                              ? const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [_cta, _gold],
+                                )
+                              : null,
+                          color: _canContinue ? null : const Color(0xFF242424),
+                          borderRadius: BorderRadius.circular(25),
+                          // The lit CTA sits above the page; the disabled
+                          // one stays flat so the difference is obvious.
+                          boxShadow: _canContinue
+                              ? [
+                                  BoxShadow(
+                                    color: _gold.withValues(alpha: 0.38),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 7),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(25),
+                            onTap: _canContinue ? _next : null,
+                            child: Center(
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _index == _pageCount - 1
+                                        ? 'Enter Mythera'
+                                        : 'Continue',
+                                    style: TextStyle(
+                                      color: _canContinue
+                                          ? Colors.black
+                                          : const Color(0xFF5E5E5E),
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.4,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 7),
+                                  Icon(
+                                    _index == _pageCount - 1
+                                        ? Icons.auto_awesome_rounded
+                                        : Icons.arrow_forward_rounded,
+                                    size: 17,
+                                    color: _canContinue
+                                        ? Colors.black
+                                        : const Color(0xFF5E5E5E),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -511,10 +659,9 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               'MYTHERA',
               style: AppFonts.cinzel(
                 color: _gold,
-                fontSize: screenWidth < 360 ? 13 : 15,
-                fontWeight: FontWeight.w600,
-                letterSpacing: screenWidth < 360 ? 5 : 8,
-                shadows: titleShadow,
+                fontSize: screenWidth < 360 ? 19 : 23,
+                fontWeight: FontWeight.w800,
+                letterSpacing: screenWidth < 360 ? 5 : 7,
               ),
               start: 0.017,
               end: 0.40,
@@ -569,20 +716,26 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _backRow(),
-          Text(
-            'Choose Your Realm',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: titleSize,
-              fontWeight: FontWeight.w800,
-              height: 1.18,
+          _pageReveal(
+            Text(
+              'Choose Your Realm',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: titleSize,
+                fontWeight: FontWeight.w800,
+                height: 1.18,
+              ),
             ),
+            0,
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Pick the pantheon that calls to you — your Discover feed will open on it.',
-            textAlign: TextAlign.justify,
-            style: TextStyle(color: _muted, fontSize: 14, height: 1.4),
+          _pageReveal(
+            const Text(
+              'Pick the pantheon that calls to you, and your Discover feed will open on it.',
+              textAlign: TextAlign.justify,
+              style: TextStyle(color: _muted, fontSize: 14, height: 1.4),
+            ),
+            1,
           ),
           const SizedBox(height: 24),
           GridView.count(
@@ -592,7 +745,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
             childAspectRatio: 1.15,
-            children: [for (final r in _realms) _realmCard(r)],
+            children: [
+              for (int i = 0; i < _realms.length; i++)
+                _pageReveal(_realmCard(_realms[i]), 2 + i),
+            ],
           ),
         ],
       ),
@@ -700,20 +856,26 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _backRow(),
-          Text(
-            realm == null ? 'Choose Your God' : 'Choose Your $realm God',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: titleSize,
-              fontWeight: FontWeight.w800,
-              height: 1.18,
+          _pageReveal(
+            Text(
+              realm == null ? 'Choose Your God' : 'Choose Your $realm God',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: titleSize,
+                fontWeight: FontWeight.w800,
+                height: 1.18,
+              ),
             ),
+            0,
           ),
           const SizedBox(height: 12),
-          const Text(
-            "The most iconic of the realm. Pick your patron — they'll be added to your favorites.",
-            textAlign: TextAlign.justify,
-            style: TextStyle(color: _muted, fontSize: 14, height: 1.4),
+          _pageReveal(
+            const Text(
+              "The most iconic of the realm. Pick your patron, and they'll be added to your favorites.",
+              textAlign: TextAlign.justify,
+              style: TextStyle(color: _muted, fontSize: 14, height: 1.4),
+            ),
+            1,
           ),
           const SizedBox(height: 24),
           if (gods.isEmpty)
@@ -733,7 +895,10 @@ class _OnboardingScreenState extends State<OnboardingScreen>
               crossAxisSpacing: 12,
               // All mythologies show 10 gods — consistent compact cards
               childAspectRatio: 0.80,
-              children: [for (final g in gods) _godCard(g)],
+              children: [
+                for (int i = 0; i < gods.length; i++)
+                  _pageReveal(_godCard(gods[i]), 2 + i),
+              ],
             ),
         ],
       ),
@@ -849,27 +1014,38 @@ class _OnboardingScreenState extends State<OnboardingScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _backRow(),
-          Text(
-            title,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: titleSize,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
+          _pageReveal(
+            Text(
+              title,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: titleSize,
+                fontWeight: FontWeight.w800,
+                height: 1.2,
+              ),
             ),
+            0,
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 8),
-            Text(subtitle,
-                style: const TextStyle(color: _muted, fontSize: 14, height: 1.4)),
+            _pageReveal(
+              Text(subtitle,
+                  style:
+                      const TextStyle(color: _muted, fontSize: 14, height: 1.4)),
+              1,
+            ),
           ],
           const SizedBox(height: 20),
-          for (final o in options)
-            _optionTile(
-              label: o.label,
-              sub: o.sub,
-              selected: groupValue == o.value,
-              onTap: () => onPick(o.value),
+          for (int i = 0; i < options.length; i++)
+            _pageReveal(
+              _optionTile(
+                label: options[i].label,
+                sub: options[i].sub,
+                icon: options[i].icon,
+                selected: groupValue == options[i].value,
+                onTap: () => onPick(options[i].value),
+              ),
+              2 + i,
             ),
         ],
       ),
@@ -879,6 +1055,7 @@ class _OnboardingScreenState extends State<OnboardingScreen>
   Widget _optionTile({
     required String label,
     String? sub,
+    required IconData icon,
     required bool selected,
     required VoidCallback onTap,
   }) {
@@ -890,18 +1067,61 @@ class _OnboardingScreenState extends State<OnboardingScreen>
           onTap();
         },
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 140),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 17),
+          duration: const Duration(milliseconds: 160),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
           decoration: BoxDecoration(
-            color: selected ? _gold.withValues(alpha: 0.10) : _tileBg,
+            gradient: selected
+                ? LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      _gold.withValues(alpha: 0.16),
+                      _gold.withValues(alpha: 0.04),
+                    ],
+                  )
+                : null,
+            color: selected ? null : _tileBg,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
               color: selected ? _gold : _tileBorder,
               width: selected ? 1.6 : 1,
             ),
+            // Selected tiles lift off the page with a soft gold cast.
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: _gold.withValues(alpha: 0.18),
+                      blurRadius: 16,
+                      offset: const Offset(0, 5),
+                    ),
+                  ]
+                : null,
           ),
           child: Row(
             children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: selected
+                      ? _gold.withValues(alpha: 0.20)
+                      : Colors.white.withValues(alpha: 0.05),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: selected
+                        ? _gold.withValues(alpha: 0.55)
+                        : Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 19,
+                  color: selected ? _gold : const Color(0xFF8A8A8A),
+                ),
+              ),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -909,8 +1129,8 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                     Text(
                       label,
                       style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16.5,
+                        color: selected ? Colors.white : const Color(0xFFDDDDDD),
+                        fontSize: 15.5,
                         fontWeight:
                             selected ? FontWeight.w700 : FontWeight.w600,
                       ),
@@ -924,9 +1144,60 @@ class _OnboardingScreenState extends State<OnboardingScreen>
                   ],
                 ),
               ),
-              if (selected)
-                const Icon(Icons.check_circle_rounded, color: _gold, size: 20),
+              const SizedBox(width: 10),
+              AnimatedOpacity(
+                duration: const Duration(milliseconds: 160),
+                opacity: selected ? 1 : 0,
+                child: const Icon(Icons.check_circle_rounded,
+                    color: _gold, size: 20),
+              ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The chosen patron, framed by a slow breathing halo in their pantheon's
+  /// colour — the one celebratory beat in the flow, marking the end of setup.
+  Widget _patronPortrait(God god, Color accent) {
+    return AnimatedBuilder(
+      animation: _haloAnim,
+      builder: (context, child) {
+        // 0→1→0 over the cycle, so the glow swells and settles rather than
+        // snapping back at the loop point.
+        final pulse = math.sin(_haloAnim.value * math.pi);
+        return Container(
+          width: 108,
+          height: 108,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: accent.withValues(alpha: 0.35 + 0.45 * pulse),
+              width: 2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withValues(alpha: 0.22 + 0.28 * pulse),
+                blurRadius: 24 + 16 * pulse,
+                spreadRadius: 2 * pulse,
+              ),
+            ],
+          ),
+          child: child,
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(3),
+        child: ClipOval(
+          child: Image.asset(
+            god.imageUrl,
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            errorBuilder: (_, __, ___) => Container(
+              color: accent.withValues(alpha: 0.15),
+              child: Icon(Icons.shield_moon_rounded, color: accent, size: 40),
+            ),
           ),
         ),
       ),
@@ -948,54 +1219,37 @@ class _OnboardingScreenState extends State<OnboardingScreen>
             children: [
               const Spacer(),
               if (god != null)
-                Container(
-                  width: 108,
-                  height: 108,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                          color: accent.withValues(alpha: 0.35),
-                          blurRadius: 24),
-                    ],
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Image.asset(
-                    god.imageUrl,
-                    fit: BoxFit.cover,
-                    width: 108,
-                    height: 108,
-                    alignment: Alignment.topCenter,
-                    errorBuilder: (_, __, ___) => Container(
-                      color: accent.withValues(alpha: 0.15),
-                      child: Icon(Icons.shield_moon_rounded,
-                          color: accent, size: 40),
-                    ),
-                  ),
-                )
+                _pageReveal(_patronPortrait(god, accent), 0)
               else
-                Icon(Icons.verified_rounded, color: accent, size: 44),
+                _pageReveal(
+                    Icon(Icons.verified_rounded, color: accent, size: 44), 0),
               const SizedBox(height: 20),
-              Text(
-                'Your Archive Is Ready',
-                textAlign: TextAlign.center,
-                style: AppFonts.cinzel(
-                  color: Colors.white,
-                  fontSize: titleSize,
-                  fontWeight: FontWeight.w700,
+              _pageReveal(
+                Text(
+                  'Your Archive Is Ready',
+                  textAlign: TextAlign.center,
+                  style: AppFonts.cinzel(
+                    color: Colors.white,
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
+                2,
               ),
               const SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Text(
-                  god != null
-                      ? "You've chosen ${god.name} of ${god.mythology} as your patron. Your journey begins now."
-                      : 'Your journey begins now.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      color: Colors.white70, fontSize: 14, height: 1.55),
+              _pageReveal(
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Text(
+                    god != null
+                        ? "You've chosen ${god.name} of ${god.mythology} as your patron. Your journey begins now."
+                        : 'Your journey begins now.',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                        color: Colors.white70, fontSize: 14, height: 1.55),
+                  ),
                 ),
+                3,
               ),
               const Spacer(flex: 2),
             ],

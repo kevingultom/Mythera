@@ -268,8 +268,8 @@ final List<MythStory> chineseHistory2 = [
     imageUrl: 'assets/images/Chinese/History/thejourneytowest.webp',
     title: 'Perjalanan ke Barat',
     titleEn: 'The Journey to the West',
-    summary: 'Biksu Tang Sanzang melakukan perjalanan berbahaya menuju India demi kitab suci Buddha, dilindungi tiga murid sakti — Sun Wukong, Zhu Bajie, dan Sha Wujing — melewati delapan puluh satu rintangan hingga akhirnya mencapai pencerahan.',
-    summaryEn: 'The monk Tang Sanzang undertakes a perilous journey to India to fetch Buddhist scriptures, protected by three powerful disciples — Sun Wukong, Zhu Bajie, and Sha Wujing — surviving eighty-one tribulations before finally attaining enlightenment.',
+    summary: 'Biksu Tang Sanzang melakukan perjalanan berbahaya menuju India demi kitab suci Buddha, dilindungi tiga murid sakti yaitu Sun Wukong, Zhu Bajie, dan Sha Wujing, lalu melewati delapan puluh satu rintangan hingga akhirnya mencapai pencerahan.',
+    summaryEn: 'The monk Tang Sanzang undertakes a perilous journey to India to fetch Buddhist scriptures, protected by three powerful disciples, namely Sun Wukong, Zhu Bajie, and Sha Wujing, surviving eighty-one tribulations before finally attaining enlightenment.',
     timeline: 'Dinasti Tang · Ekspedisi Suci ke India',
     timelineEn: 'Tang Dynasty · The Sacred Pilgrimage to India',
     chapters: [

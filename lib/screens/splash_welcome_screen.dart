@@ -62,12 +62,25 @@ class _SplashWelcomeScreenState extends State<SplashWelcomeScreen>
     setState(() => _loading = true);
     await Future.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
+    // Same held-black-then-fade-in treatment as onboarding's "Enter
+    // Mythera" transition: a beat of plain darkness before Discover
+    // eases into view, rather than an immediate cross-fade.
     Navigator.of(context, rootNavigator: true).pushReplacement(
       PageRouteBuilder(
         pageBuilder: (_, __, ___) => const MainShell(),
-        transitionsBuilder: (_, anim, __, child) =>
-            FadeTransition(opacity: anim, child: child),
-        transitionDuration: const Duration(milliseconds: 500),
+        transitionsBuilder: (_, anim, __, child) {
+          final curved = CurvedAnimation(
+            parent: anim,
+            curve: const Interval(0.34, 1.0, curve: Curves.easeOutCubic),
+          );
+          return Stack(
+            children: [
+              const ColoredBox(color: Colors.black),
+              FadeTransition(opacity: curved, child: child),
+            ],
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 1400),
       ),
     );
   }
@@ -198,10 +211,9 @@ class _SplashWelcomeScreenState extends State<SplashWelcomeScreen>
                         'MYTHERA',
                         style: AppFonts.cinzel(
                           color: _gold,
-                          fontSize: screenWidth < 360 ? 13 : 15,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: screenWidth < 360 ? 5 : 8,
-                          shadows: titleShadow,
+                          fontSize: screenWidth < 360 ? 19 : 23,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: screenWidth < 360 ? 5 : 7,
                         ),
                         start: 0.017,
                         end: 0.40,
@@ -250,13 +262,29 @@ class _SplashWelcomeScreenState extends State<SplashWelcomeScreen>
                         child: AnimatedOpacity(
                           duration: const Duration(milliseconds: 300),
                           opacity: _loading ? 1 : 0,
-                          child: const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.4,
-                              valueColor: AlwaysStoppedAnimation<Color>(_gold),
-                            ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.4,
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(_gold),
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'ENTERING THE REALMS',
+                                style: AppFonts.cinzel(
+                                  color: Colors.white.withValues(alpha: 0.45),
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 2.4,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

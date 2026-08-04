@@ -146,9 +146,9 @@ final List<MythStory> egyptianHistory2 = [
       'Isis, the most cunning goddess of magic, architect of the poison trap',
       'Horus, Isis\'s son, who would later inherit power through Ra\'s secret name',
       'Thoth, god of wisdom, the only god whose magic rivaled Isis\'s own',
-      'Isis\'s serpent — the magical creature formed from Ra\'s spittle and earth',
+      'Isis\'s serpent, the magical creature formed from Ra\'s spittle and earth',
       'The attendant gods, witnesses who failed to cure Ra\'s suffering',
-      'Ra\'s Secret Name — the source of supreme power at the heart of the contest',
+      'Ra\'s Secret Name, the source of supreme power at the heart of the contest',
     ],
     chronology: [
       'Ra, yang telah menjadi tua, sering mengeluarkan air liur tanpa sadar saat berjalan berkeliling.',

@@ -27,8 +27,14 @@ class TermsOfServiceScreen extends StatelessWidget {
         StaticPageHeading(localize(lang, 'Penggunaan Aplikasi', 'Use of the App')),
         StaticPageParagraph(
           localize(lang,
-              'Aplikasi ini gratis digunakan dan tidak memerlukan akun maupun pembayaran. Kamu bebas menjelajahi, menyimpan favorit, membaca kisah, dan mengikuti kuis sesuai keinginan.',
-              'This app is free to use and does not require an account or payment. You are free to explore, bookmark favorites, read stories, and take quizzes as you like.'),
+              'Aplikasi ini gratis digunakan dan tidak memerlukan akun. Kamu bebas menjelajahi, menyimpan favorit, membaca kisah, dan mengikuti kuis sesuai keinginan.',
+              'This app is free to use and does not require an account. You are free to explore, bookmark favorites, read stories, and take quizzes as you like.'),
+        ),
+        StaticPageHeading(localize(lang, 'Fitur Premium', 'Premium Feature')),
+        StaticPageParagraph(
+          localize(lang,
+              'Sebagian besar legenda dewa dan kisah sejarah mitologi terkunci sampai kamu membeli Premium sekali bayar, atau membukanya satu per satu lewat Kartu Dewa Gratis harian. Pembayaran diproses otomatis lewat mitra pembayaran (Midtrans) menggunakan QRIS atau transfer Virtual Account bank, dan Premium aktif otomatis begitu pembayaran terverifikasi, tanpa perlu konfirmasi manual. Pembayaran Premium bersifat final dan tidak dapat dikembalikan.',
+              'Most god legends and mythology history stories are locked until you buy Premium as a one-time payment, or unlock them one at a time through the daily Free God Card. Payment is processed automatically through a payment partner (Midtrans) using QRIS or bank Virtual Account transfer, and Premium activates automatically once payment is verified, with no manual confirmation needed. Premium payments are final and non-refundable.'),
         ),
         StaticPageParagraph(
           localize(lang,

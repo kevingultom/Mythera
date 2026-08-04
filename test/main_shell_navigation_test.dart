@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mythera/main.dart';
 import 'package:mythera/l10n/language_provider.dart';
 import 'package:mythera/services/onboarding_service.dart';
+import 'package:mythera/screens/main_shell.dart';
 
 void main() {
   testWidgets('Switching through all bottom nav tabs does not throw',
@@ -22,8 +22,16 @@ void main() {
     final langNotifier = LanguageNotifier();
     await langNotifier.init();
 
+    // Pump MainShell directly rather than MytheraApp/SplashWelcomeScreen.
+    // The splash's reveal is timed with a real Stopwatch + Timer.periodic
+    // (deliberately, to sidestep a Flutter Web ticker bug — see that
+    // screen's comments), and a real Stopwatch never advances inside
+    // WidgetTester's fake-async zone no matter how it's pumped, so a test
+    // can never wait it out. This test is about MainShell's own
+    // navigation, so going straight there is also more direct.
     await tester.pumpWidget(
-      LanguageProvider(notifier: langNotifier, child: const MytheraApp()),
+      LanguageProvider(
+          notifier: langNotifier, child: const MaterialApp(home: MainShell())),
     );
     await tester.pumpAndSettle();
 
@@ -60,7 +68,7 @@ void main() {
     // DetailScreen/GodBattleScreen elsewhere) — its own custom back arrow
     // (not a framework BackButton) needs a tap before the bottom nav
     // reappears.
-    await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded).first);
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded).first);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull,
         reason: 'Returning from the "What\'s Your God?" quiz threw');
@@ -75,8 +83,19 @@ void main() {
     // Greek appears in both the carousel and the grid.
     expect(find.text('Greek'), findsWidgets,
         reason: 'Greek genre card missing from Stories');
-    // Tapping a genre opens its stories list without throwing.
-    await tester.tap(find.text('Greek').first);
+    // Tapping a genre opens its stories list without throwing. The featured
+    // carousel's "Greek" title text isn't itself tappable (only its "Stories
+    // & Facts" pill is); the grid card below it wraps the whole tile in a
+    // GestureDetector, so use that instance. It's further down the page than
+    // the small test viewport, so scroll it fully into view first (a plain
+    // scrollUntilVisible stops as soon as any part is on-screen, which can
+    // still leave the tap point outside the viewport).
+    final storiesScrollable =
+        tester.state<ScrollableState>(find.byType(Scrollable).first);
+    storiesScrollable.position
+        .jumpTo(storiesScrollable.position.maxScrollExtent);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Greek').last);
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull,
         reason: 'Opening a genre stories list threw');
@@ -87,7 +106,7 @@ void main() {
     expect(find.byIcon(Icons.library_books_rounded), findsOneWidget,
         reason: 'Bottom nav footer disappeared on a deeper page');
 
-    await tester.tap(find.byIcon(Icons.arrow_back_ios_new_rounded).first);
+    await tester.tap(find.byIcon(Icons.arrow_back_rounded).first);
     await tester.pumpAndSettle();
 
     // Navigate back to Codex to confirm its cards render without a layout

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:mythera/main.dart';
 import 'package:mythera/l10n/language_provider.dart';
 import 'package:mythera/services/onboarding_service.dart';
+import 'package:mythera/screens/main_shell.dart';
 
 Future<void> _enterAppAndOpenPopCulture(WidgetTester tester) async {
   tester.view.physicalSize = const Size(750, 1334); // iPhone SE class
@@ -16,10 +16,18 @@ Future<void> _enterAppAndOpenPopCulture(WidgetTester tester) async {
   final lang = LanguageNotifier();
   await lang.init();
 
+  // Pump MainShell directly rather than MytheraApp/SplashWelcomeScreen.
+  // The splash's reveal is timed with a real Stopwatch + Timer.periodic
+  // (deliberately, to sidestep a Flutter Web ticker bug — see that
+  // screen's comments), and a real Stopwatch never advances inside
+  // WidgetTester's fake-async zone no matter how it's pumped, so a test
+  // can never wait it out. Going straight to MainShell is what this test
+  // actually needs to cover (post-splash navigation), without depending
+  // on an untestable screen.
   await tester.pumpWidget(
-    LanguageProvider(notifier: lang, child: const MytheraApp()),
+    LanguageProvider(notifier: lang, child: const MaterialApp(home: MainShell())),
   );
-  await tester.pumpAndSettle(); // splash auto-advances into the app
+  await tester.pumpAndSettle();
 
   // Codex tab.
   await tester.tap(find.byIcon(Icons.library_books_rounded));

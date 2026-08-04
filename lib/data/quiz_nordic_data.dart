@@ -37,8 +37,8 @@ final List<QuizQuestion> nordicQuizData = [
   QuizQuestion(
     question: 'Nama ayah dari Ymir dalam kosmologi Nordik?',
     questionEn: 'What is the name of Ymir\'s father in Norse cosmology?',
-    options: ['Buri', 'Audhumla tidak memiliki suami', 'Ymir tidak memiliki ayah — ia lahir dari es dan api', 'Naglfar'],
-    optionsEn: ['Buri', 'Audhumla had no husband', 'Ymir had no father — born from fire and ice', 'Naglfar'],
+    options: ['Buri', 'Audhumla tidak memiliki suami', 'Ymir tidak memiliki ayah, ia lahir dari es dan api', 'Naglfar'],
+    optionsEn: ['Buri', 'Audhumla had no husband', 'Ymir had no father, born from fire and ice', 'Naglfar'],
     correctIndex: 2,
   ),
   // 6
@@ -125,8 +125,8 @@ final List<QuizQuestion> nordicQuizData = [
   QuizQuestion(
     question: 'Siapa yang menempa rantai Gleipnir untuk mengikat Fenrir?',
     questionEn: 'Who forged the chain Gleipnir to bind Fenrir?',
-    options: ['Para dwarf — Sons of Ivaldi', 'Itnar', 'Brokkr dan Eitri', 'Regin'],
-    optionsEn: ['The dwarves — Sons of Ivaldi', 'Itnar', 'Brokkr and Eitri', 'Regin'],
+    options: ['Para dwarf, yaitu Sons of Ivaldi', 'Itnar', 'Brokkr dan Eitri', 'Regin'],
+    optionsEn: ['The dwarves, namely the Sons of Ivaldi', 'Itnar', 'Brokkr and Eitri', 'Regin'],
     correctIndex: 0,
   ),
   // 17

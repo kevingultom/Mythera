@@ -20,6 +20,8 @@ dependencies:
   timezone: ^0.9.4
   # Auth
   google_sign_in: ^6.2.2
+  # Premium checkout (backend API calls to the Vercel/Midtrans backend)
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
@@ -49,6 +51,7 @@ flutter:
     - assets/images/Egypt/
     - assets/images/Egypt/Death/
     - assets/images/Egypt/Ennead/
+    - assets/images/Egypt/Kingship/
     - assets/images/Egypt/Fertility/
     - assets/images/Egypt/Knowledge/
     - assets/images/Egypt/Sun&Sky/

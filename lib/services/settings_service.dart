@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'firebase_auth_service.dart';
 import 'firestore_service.dart';
@@ -67,6 +68,6 @@ class SettingsService {
       soundEffects: _soundEffects,
       haptics: _haptics,
     )
-        .catchError((e) {});
+        .catchError((e) => debugPrint('SettingsService cloud sync failed: $e'));
   }
 }

@@ -35,7 +35,7 @@ JANGAN hanya edit tanpa build+install. User maunya langsung jalan di HP.
 - Flutter project, package: `com.example.mythopedia`
 - JDK: `D:\develop-flutter\android studio\jbr`
 - ADB: `C:\Users\KEVIN\AppData\Local\Android\sdk\platform-tools\adb.exe`
-- 6 mitologi, 327 gods, 58 stories, 49 pop culture
+- 6 mitologi, 326 gods, 58 stories, 48 pop culture
 - Auth: Firebase (Google Sign-In)
-- Bahasa: ID, EN, ZH, JA
+- Bahasa: ID, EN
 - Top padding konsisten: 18px semua screen

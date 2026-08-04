@@ -8,6 +8,7 @@ import '../widgets/god_card.dart';
 import '../l10n/language_provider.dart';
 import '../services/sound_service.dart';
 import '../services/battle_engine.dart';
+import '../data/god_tiers.dart';
 
 // ─── Screen ─────────────────────────────────────────────────
 class GodBattleScreen extends StatefulWidget {
@@ -691,99 +692,160 @@ class _GodBattleScreenState extends State<GodBattleScreen>
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          const Spacer(flex: 2),
-          // Two small square god slots with a plain VS between them. Each slot
-          // has its own dice button to randomize just that side.
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: _RollableGodSlot(
-                  slot: 1,
-                  god: _god1,
-                  accent: const Color(0xFF2196F3),
-                  lang: lang,
-                  onPick: () => _pickGod(1),
-                  rollPool: () => _rollPoolFor(1),
-                  onRolled: (g) => _setRolledGod(1, g),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Text(
-                  'VS',
-                  style: AppFonts.cinzel(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFFFFC107),
-                    shadows: const [
-                      Shadow(color: Color(0xFFFF6F00), blurRadius: 16),
-                    ],
+          const SizedBox(height: 12),
+          // Two portrait god slots with a plain VS between them, sized to
+          // fill all the space the screen can spare above the summary row
+          // and Fight button — Expanded (not Flexible) so the cards grow to
+          // dominate the page instead of shrinking to their intrinsic size.
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: _RollableGodSlot(
+                    slot: 1,
+                    god: _god1,
+                    accent: const Color(0xFF2196F3),
+                    lang: lang,
+                    onPick: () => _pickGod(1),
+                    rollPool: () => _rollPoolFor(1),
+                    onRolled: (g) => _setRolledGod(1, g),
                   ),
                 ),
-              ),
-              Expanded(
-                child: _RollableGodSlot(
-                  slot: 2,
-                  god: _god2,
-                  accent: const Color(0xFFFF3D00),
-                  lang: lang,
-                  onPick: () => _pickGod(2),
-                  rollPool: () => _rollPoolFor(2),
-                  onRolled: (g) => _setRolledGod(2, g),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    'VS',
+                    style: AppFonts.cinzel(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFFFC107),
+                      shadows: const [
+                        Shadow(color: Color(0xFFFF6F00), blurRadius: 16),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
+                Expanded(
+                  child: _RollableGodSlot(
+                    slot: 2,
+                    god: _god2,
+                    accent: const Color(0xFFFF3D00),
+                    lang: lang,
+                    onPick: () => _pickGod(2),
+                    rollPool: () => _rollPoolFor(2),
+                    onRolled: (g) => _setRolledGod(2, g),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 14),
+          // Short "who did I pick" summary under each card — name, tier
+          // badge (gods only; pop-culture characters carry no GodTier
+          // label), and title — so the page reads as full/informative
+          // rather than empty space around two cards.
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: _godSummary(_god1, lang)),
+              const SizedBox(width: 10 + 26), // mirrors the VS gap above
+              Expanded(child: _godSummary(_god2, lang)),
             ],
           ),
-          const Spacer(flex: 1),
+          const SizedBox(height: 16),
           GestureDetector(
             onTap: (_god1 != null && _god2 != null) ? _startBattle : null,
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 300),
               width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: (_god1 != null && _god2 != null) ? 16 : 12,
-              ),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               decoration: BoxDecoration(
-                gradient: (_god1 != null && _god2 != null)
-                    ? const LinearGradient(
-                        colors: [Color(0xFFFF6F00), Color(0xFFFF3D00)],
-                      )
-                    : null,
+                // Same dark-gold, slightly transparent treatment whether a
+                // fight is ready or not — only the intensity changes, so
+                // the button reads as one professional, on-brand element
+                // rather than switching palettes.
                 color: (_god1 != null && _god2 != null)
-                    ? null
-                    : const Color(0xFF222222),
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: (_god1 != null && _god2 != null)
-                    ? [
-                        BoxShadow(
-                          color: const Color(0xFFFF6F00).withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ]
-                    : [],
+                    ? const Color(0xFFC9A227).withValues(alpha: 0.22)
+                    : const Color(0xFF1A1A1A).withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: (_god1 != null && _god2 != null)
+                      ? const Color(0xFFC9A227).withValues(alpha: 0.55)
+                      : Colors.white.withValues(alpha: 0.12),
+                ),
               ),
               child: Center(
                 child: Text(
                   _god1 != null && _god2 != null
-                      ? 'FIGHT!'
+                      ? localize(lang, 'Bertarung', 'Fight')
                       : localize(lang, 'Pilih Dewamu', 'Choose Your Gods'),
-                  style: AppFonts.cinzel(
-                    fontSize: (_god1 != null && _god2 != null) ? 18 : 13,
-                    fontWeight: FontWeight.w800,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                     color: (_god1 != null && _god2 != null)
-                        ? Colors.white
-                        : Colors.white70,
-                    letterSpacing: (_god1 != null && _god2 != null) ? 2 : 1,
+                        ? const Color(0xFFE0C158)
+                        : Colors.white54,
+                    letterSpacing: 0.3,
                   ),
                 ),
               ),
             ),
           ),
-          const Spacer(flex: 2),
+          const SizedBox(height: 16),
         ],
       ),
+    );
+  }
+
+  Widget _godSummary(Combatant? god, String lang) {
+    if (god == null) return const SizedBox(height: 54);
+    final tier = god.isPopCulture ? null : tierOf(god.mythology, god.name);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          god.name,
+          textAlign: TextAlign.center,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: AppFonts.cinzel(
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 3),
+        if (tier != null)
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.military_tech_rounded, color: tier.color, size: 12),
+              const SizedBox(width: 4),
+              Text(
+                tier.label,
+                style: TextStyle(
+                  color: tier.color,
+                  fontSize: 11.5,
+                  fontStyle: FontStyle.italic,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        const SizedBox(height: 3),
+        Text(
+          god.localizedTitle(lang),
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.6),
+            fontSize: 11.5,
+            height: 1.3,
+          ),
+        ),
+      ],
     );
   }
 
@@ -922,7 +984,7 @@ class _GodBattleScreenState extends State<GodBattleScreen>
       color: accent.withValues(alpha: 0.08),
       child: Center(
         child: Text(
-          god.name[0],
+          god.name.isNotEmpty ? god.name[0] : '?',
           style: GodCard.mythologyFont(
             god.mythology,
             fontSize: 36,
@@ -1348,7 +1410,7 @@ class _RollableGodSlotState extends State<_RollableGodSlot>
     _timer = Timer(Duration(milliseconds: spinMs), () {
       if (!mounted) return;
       if (isLast) {
-        SoundService.playResult();
+        SoundService.playRandomGodLand();
         widget.onRolled(_finalGod!);
         setState(() {
           _rolling = false;
@@ -1359,7 +1421,7 @@ class _RollableGodSlotState extends State<_RollableGodSlot>
           ..duration = const Duration(milliseconds: 500)
           ..forward(from: 0);
       } else {
-        SoundService.playButton();
+        SoundService.playRandomGodTick();
         setState(() => _tickIndex++);
         _scheduleTick();
       }
@@ -1369,8 +1431,11 @@ class _RollableGodSlotState extends State<_RollableGodSlot>
   @override
   Widget build(BuildContext context) {
     final shown = _rolling ? _reel[_tickIndex] : widget.god;
+    // Portrait, not square — god portraits are shot tall, so a 1:1 frame
+    // was cropping heads/feet under BoxFit.cover. 3:4 shows far more of
+    // each figure while still fitting two slots + VS on one row.
     return AspectRatio(
-      aspectRatio: 1,
+      aspectRatio: 3 / 4,
       child: Stack(
         children: [
           Positioned.fill(
@@ -1662,24 +1727,33 @@ class _GodPickerSheetState extends State<_GodPickerSheet> {
                   itemBuilder: (_, i) {
                     final m = _mythologies[i];
                     final active = _filter == m;
-                    final color = GodCard.mythologyColor(m == 'All' ? 'Greek' : m);
+                    // A single dark-gold treatment for every category chip
+                    // (mythologies and pop culture alike) instead of each
+                    // mythology's own accent color — calmer and consistent
+                    // with the app's black-and-gold identity.
+                    const gold = Color(0xFFC9A227);
+                    const goldDark = Color(0xFF7A6118);
                     return GestureDetector(
                       onTap: () => setState(() => _filter = m),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
+                        height: 34,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: active
-                              ? color.withValues(alpha: 0.3)
-                              : const Color(0xFF1A1A1A),
+                          color: active ? goldDark.withValues(alpha: 0.35) : const Color(0xFF1A1A1A),
                           borderRadius: BorderRadius.circular(20),
+                          border: active
+                              ? Border.all(color: gold.withValues(alpha: 0.6))
+                              : null,
                         ),
                         child: Text(
                           m == 'All' ? 'Semua' : m,
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: active ? color : const Color(0xFF9CA3AF),
+                            color: active ? gold : const Color(0xFF9CA3AF),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
+                            height: 1.0,
                           ),
                         ),
                       ),

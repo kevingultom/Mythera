@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/god_model.dart';
 import '../models/history_model.dart';
@@ -168,6 +169,6 @@ class ReadingService {
       lastDate: _lastDate,
       recent: _recent.map((r) => r.toJson()).toList(),
     )
-        .catchError((e) {});
+        .catchError((e) => debugPrint('ReadingService cloud sync failed: $e'));
   }
 }

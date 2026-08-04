@@ -304,7 +304,7 @@ final List<MythStory> chineseHistory1 = [
     ],
     characters: [
       'Hou Yi, pemanah sakti yang menembak jatuh sembilan matahari',
-      'Chang\'e — istri Hou Yi, bidadari yang menemaninya turun ke bumi',
+      'Chang\'e, istri Hou Yi, bidadari yang menemaninya turun ke bumi',
       'Dijun, penguasa tertinggi langit, ayah dari sepuluh matahari',
       'Xi He, dewi matahari, ibu para burung gagak matahari',
       'Kaisar Yao, raja bijaksana yang memohon pertolongan langit bagi rakyatnya',
@@ -313,7 +313,7 @@ final List<MythStory> chineseHistory1 = [
     ],
     charactersEn: [
       'Hou Yi, the divine archer who shoots down nine of the ten suns',
-      'Chang\'e — the celestial maiden and wife of Hou Yi who accompanies him to earth',
+      'Chang\'e, the celestial maiden and wife of Hou Yi who accompanies him to earth',
       'Dijun, the supreme ruler of heaven, father of the ten suns',
       'Xihe, the sun goddess, mother of the sun-crows',
       'Emperor Yao, the wise king who prays to heaven on behalf of his suffering people',
@@ -389,7 +389,7 @@ final List<MythStory> chineseHistory1 = [
       ),
     ],
     characters: [
-      'Chang\'e — istri Hou Yi yang menelan ramuan keabadian dan menjadi dewi bulan',
+      'Chang\'e, istri Hou Yi yang menelan ramuan keabadian dan menjadi dewi bulan',
       'Hou Yi, pemanah sakti yang mencari ramuan keabadian bagi dirinya dan istrinya',
       'Xi Wangmu, Ratu Barat, pemilik dan pemberi ramuan keabadian',
       'Feng Meng, murid Hou Yi yang licik dan berusaha mencuri ramuan itu',
@@ -398,7 +398,7 @@ final List<MythStory> chineseHistory1 = [
       'Kaisar Yao, raja bumi yang sebelumnya diselamatkan Hou Yi dari sepuluh matahari',
     ],
     charactersEn: [
-      'Chang\'e — wife of Hou Yi, who swallows the elixir of immortality and becomes the moon goddess',
+      'Chang\'e, wife of Hou Yi, who swallows the elixir of immortality and becomes the moon goddess',
       'Hou Yi, the divine archer who seeks the elixir of immortality for himself and his wife',
       'Xiwangmu, the Queen Mother of the West, keeper and giver of the elixir of immortality',
       'Fengmeng, Hou Yi\'s cunning disciple, who attempts to steal the elixir',

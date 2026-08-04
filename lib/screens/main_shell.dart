@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/language_provider.dart';
 import '../services/sound_service.dart';
 import '../utils/app_fonts.dart';
+import '../widgets/premium_nag_fab.dart';
 import 'home_screen.dart';
 import 'stories_screen.dart';
 import 'codex_screen.dart';
@@ -60,8 +61,10 @@ class _MainShellState extends State<MainShell> {
       return;
     }
     SoundService.playClick();
-    // Reset the destination tab to its root when switching tabs.
-    _navKeys[index].currentState?.popUntil((r) => r.isFirst);
+    // Switching to a different tab leaves its stack exactly as the user
+    // left it (e.g. still deep inside a Stories detail screen) — resetting
+    // it here was wiping that position every time the user came back to
+    // it, not just when they tapped the already-active tab.
     setState(() => _currentIndex = index);
     if (index == 3) _profileKey.currentState?.refresh();
   }
@@ -88,6 +91,13 @@ class _MainShellState extends State<MainShell> {
         body: IndexedStack(
           index: _currentIndex,
           children: List.generate(_rootPages.length, _tabNavigator),
+        ),
+        // Hidden during quizzes (same signal that hides the nav bar) so it
+        // doesn't float over quiz content or compete with its own CTAs.
+        floatingActionButton: ValueListenableBuilder<bool>(
+          valueListenable: MainShell.quizActive,
+          builder: (_, active, __) =>
+              active ? const SizedBox.shrink() : const PremiumNagFab(),
         ),
         bottomNavigationBar: ValueListenableBuilder<bool>(
           valueListenable: MainShell.quizActive,

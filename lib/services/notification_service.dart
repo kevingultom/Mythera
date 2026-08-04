@@ -23,7 +23,20 @@ class NotificationService {
   /// BuildContext. Attached to MaterialApp(navigatorKey: ...) in main.dart.
   static final navigatorKey = GlobalKey<NavigatorState>();
 
-  final _messaging = FirebaseMessaging.instance;
+  // Lazy + nullable: FirebaseMessaging.instance throws when Firebase wasn't
+  // initialized (e.g. web without config — see main.dart's firebaseReady
+  // guard). Every messaging call below is guarded so a failure here just
+  // no-ops instead of throwing and, critically, never aborts a caller's
+  // surrounding try block partway through (see onboarding_screen.dart's
+  // _finish(), which used to lose the chosen patron god this way).
+  FirebaseMessaging? get _messaging {
+    try {
+      return FirebaseMessaging.instance;
+    } catch (_) {
+      return null;
+    }
+  }
+
   final _local = FlutterLocalNotificationsPlugin();
 
   static const _channelId = 'mythera_daily';
@@ -168,7 +181,7 @@ class NotificationService {
     tz_data.initializeTimeZones();
 
     // Request notification permission.
-    await _messaging.requestPermission(
+    await _messaging?.requestPermission(
       alert: true,
       badge: true,
       sound: true,
@@ -199,7 +212,7 @@ class NotificationService {
         ?.createNotificationChannel(androidChannel);
 
     // Listen for FCM token refreshes.
-    _messaging.onTokenRefresh.listen((token) {
+    _messaging?.onTokenRefresh.listen((token) {
       // Caller should save token to Firestore.
     });
   }
@@ -213,7 +226,7 @@ class NotificationService {
 
   // ── FCM Token ─────────────────────────────────────────────────
   Future<String?> getToken() async {
-    return _messaging.getToken();
+    return _messaging?.getToken();
   }
 
   // ── Daily Reminder ────────────────────────────────────────────

@@ -395,7 +395,7 @@ final List<MythStory> egyptianHistory = [
     characters: [
       'Anubis, dewa berkepala serigala yang memimpin dan mengatur timbangan',
       'Thoth, dewa berkepala ibis yang mencatat hasil penimbangan',
-      'Ma\'at — dewi kebenaran dan tatanan kosmis, diwakili oleh bulunya',
+      'Ma\'at, dewi kebenaran dan tatanan kosmis, diwakili oleh bulunya',
       'Ammit, makhluk pelahap jantung arwah yang tidak lolos',
       'Osiris, hakim tertinggi dan raja alam baka',
       'Horus, putra Osiris yang membimbing arwah yang dibenarkan',
@@ -404,7 +404,7 @@ final List<MythStory> egyptianHistory = [
     charactersEn: [
       'Anubis, the jackal-headed god who conducts and balances the scale',
       'Thoth, the ibis-headed god who records the outcome of the weighing',
-      'Ma\'at — goddess of truth and cosmic order, represented by her feather',
+      'Ma\'at, goddess of truth and cosmic order, represented by her feather',
       'Ammit, the creature who devours the hearts of the unworthy',
       'Osiris, supreme judge and king of the afterlife',
       'Horus, Osiris\'s son, who guides the vindicated soul forward',
